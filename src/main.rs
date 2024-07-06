@@ -56,7 +56,7 @@ fn main() -> std::io::Result<()> {
             write!(&mut lock, "{} ", display_mode(&mode))?;
         }
 
-        writeln!(&mut lock, "{}", display_file(&entry, &metadata))?;
+        writeln!(&mut lock, "{}", display_file(&entry.path(), &metadata))?;
     }
 
     Ok(())
@@ -121,13 +121,14 @@ anonymous_display! {
         }
     }
 
-    fn display_file<'f>(file: &'f std::fs::DirEntry, meta: &'f std::fs::Metadata) {
+    fn display_file<'f>(file: &'f std::path::Path, meta: &'f std::fs::Metadata) {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             fn is_executable(metadata: &std::fs::Metadata) -> bool {
                 cfg!(target_os = "linux") && metadata.is_file() && metadata.mode() & 1 != 0
             }
 
-            let name = self.0.file_name().to_string_lossy().into_owned();
+            let name = self.0.file_name().unwrap_or(self.0.as_os_str());
+            let name = name.to_string_lossy().into_owned();
 
             colorize_if! {
                 f, self.1.is_dir(), "{}/", name, bright_blue;
@@ -143,26 +144,14 @@ anonymous_display! {
             if self.1.is_symlink() {
                 write!(f, " -> ")?;
 
-                let Ok(path) = canonicalize(self.0.path()) else {
+                let Ok(path) = canonicalize(self.0) else {
                     return Ok(());
                 };
                 let Ok(path_metadata) = path.metadata() else {
                     return Ok(());
                 };
 
-                let name = path.to_string_lossy().into_owned();
-
-                colorize_if! {
-                    f, path_metadata.is_dir(), "{}/", name, bright_blue;
-                    // \/ Should not be possible.
-                    f, path_metadata.is_symlink(), "{}", name, bright_cyan;
-                    f, is_executable(&path_metadata), "{}", name, bright_green;
-                    f, true, "{}", name, white;
-                };
-
-                if is_executable(&path_metadata) {
-                    write!(f, "*")?;
-                }
+                write!(f, "{}", Struct(&path, &path_metadata))?;
             }
 
             Ok(())
