@@ -142,7 +142,7 @@ anonymous_display! {
             }
 
             if self.1.is_symlink() {
-                write!(f, " -> ")?;
+                write!(f, "{}", " -> ".if_supports_color(Stream::Stdout, |v| v.bright_black()))?;
 
                 let Ok(path) = canonicalize(self.0) else {
                     return Ok(());
