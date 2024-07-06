@@ -1,0 +1,8 @@
+[package]
+name = "rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+owo-colors = { version = "4.0.0", features = ["supports-colors"] }
+unix_mode = "0.1.4"
