@@ -26,13 +26,19 @@ text() {
         dim | faint )
             color="\e[2m"
             ;;
+        red )
+            color="\e[31m"
+            ;;
         reset | normal | * )
             color="\e[0m"
             ;;
     esac
 
-
     echo -e "$color"
+}
+
+error() {
+    echo "$(text red)$*$(text reset)"
 }
 
 opt() {
@@ -89,6 +95,11 @@ while true; do
     esac
 done
 
+grep --quiet 'name = "rs"' './Cargo.toml' 2> /dev/null || {
+    error 'Script must be run in root directory of rs!'
+
+    exit 1
+}
 
 if [ -d ./target/ ] && [ "${opts[clean]}" = true ]; then
     echo 'Cleaning up target directory.'
@@ -105,7 +116,7 @@ cargo build --release
 echo
 
 if [ ! -f ./target/release/rs ]; then
-    echo "Unable to find 'rs' binary."
+    error "Unable to find 'rs' binary."
 
     exit 1
 fi
