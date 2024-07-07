@@ -9,17 +9,17 @@ Not intended to POSIX-compliant or an otherwise legimately used tool, just a fun
 Currently, rs only implements basic directory listing:
 ```
 $ arch @ PC > ~/dev/rust/rs > ./rs
-[drwxr-xr-x] .git/
-[drwxr-xr-x] src/
-[drwxr-xr-x] target/
-[-rw-r--r--] .gitignore
-[-rw-r--r--] Cargo.lock
-[-rw-r--r--] Cargo.toml
-[-rw-r--r--] LICENSE
-[-rw-r--r--] README.md
-[lrwxrwxrwx] rs -> /home/arch/dev/rust/rs/target/debug/rs*
-[-rw-r--r--] rust-toolchain.toml
-[-rw-r--r--] rustfmt.toml
+[drwxr-xr-x]         - .git/
+[drwxr-xr-x]         - src/
+[drwxr-xr-x]         - target/
+[-rw-r--r--]     8   B .gitignore
+[-rwxr-xr-x]   2.9 KiB build.sh*
+[-rw-r--r--]   3.9 KiB Cargo.lock
+[-rw-r--r--]   160   B Cargo.toml
+[-rw-r--r--]  33.7 KiB LICENSE
+[-rw-r--r--]   1.1 KiB README.md
+[-rw-r--r--]    32   B rust-toolchain.toml
+[-rw-r--r--]   1.0 KiB rustfmt.toml
 ```
 *Note that the above contains color, so long as the terminal supports it.*
 
