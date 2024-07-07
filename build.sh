@@ -54,14 +54,15 @@ $(text bold)Arguments:$(text reset)
   $(opt -i --install)  Installs to ~/.local/bin, or, if that doesn't exist,
                      the current working directory.
   $(opt -c --clean)    Runs \`cargo clean\` before building.
+  $(opt -d --debug)    Builds in debug mode instead of release mode.
 EOF
 }
 
 args=""
 args=$(getopt \
     --name "build.sh" \
-    --options i,c,h \
-    --longoptions install,clean,help \
+    --options h,i,c,d \
+    --longoptions help,install,clean,debug \
     -- "$@")
 
 eval set -- "$args"
@@ -70,9 +71,14 @@ unset args
 declare -A opts
 opts[install]=false
 opts[clean]=false
+opts[debug]=false
 
 while true; do
     case "$1" in
+        -h | --help )
+            help
+            exit 0
+            ;;
         -i | --install )
             opts[install]=true
             shift
@@ -81,9 +87,9 @@ while true; do
             opts[clean]=true
             shift
             ;;
-        -h | --help )
-            help
-            exit 0
+        -d | --debug)
+            opts[debug]=true
+            shift
             ;;
         -- )
             shift
@@ -111,7 +117,13 @@ fi
 
 echo 'Building command binary.'
 
-cargo build --release
+if [ "${opts[debug]}" = true ]; then
+    cargo build
+    executable="./target/debug/rs"
+else
+    cargo build --release
+    executable="./target/release/rs"
+fi
 
 echo
 
@@ -125,14 +137,14 @@ if [ -d ~/.local/bin/ ] && [ "${opts[install]}" = true ]; then
     target="$HOME/.local/bin/rs"
     [ -f "$target" ] && rm "$target"
 
-    cp './target/release/rs' "$target"
+    cp "$executable" "$target"
 
     echo "Compiled and copied to local programs ($target)."
 else
     target="./rs"
     [ -f "$target" ] && rm "$target"
 
-    cp './target/release/rs' "$target"
+    cp "$executable" "$target"
 
     echo "Compiled and copied to current directory ($target)."
 fi
