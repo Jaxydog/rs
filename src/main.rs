@@ -60,6 +60,7 @@ impl TryFrom<DirEntry> for Entry {
 }
 
 /// The program's command-line arguments.
+#[allow(clippy::struct_excessive_bools)]
 #[non_exhaustive]
 #[derive(Clone, Debug, clap::Parser)]
 #[command(about, version, long_about = None)]
@@ -67,18 +68,30 @@ pub struct Arguments {
     /// The path to list.
     #[arg(default_value = ".")]
     pub path: Box<Path>,
-    /// Display entries starting with '.'.
+
+    /// Displays hidden entries.
     #[arg(short = 'a', long = "all")]
     pub all: bool,
-    /// Whether to reverse the sorting order.
+    /// Reverses the sorting order.
     #[arg(short = 'r', long = "reverse")]
     pub reverse: bool,
+
     /// Sorts entries using the given method.
     #[arg(short = 's', long = "sort-by", default_value = "name")]
     pub sort_by: SortType,
     /// Groups entries at the top of the listing by the given type.
     #[arg(short = 'H', long = "hoist", default_value = "none")]
     pub hoist_by: HoistType,
+
+    /// Whether to use human-readable units.
+    #[arg(short = 'U', long = "human-readable")]
+    pub human_readable: bool,
+    /// Resolves symlink paths.
+    #[arg(short = 'R', long = "resolve-symlinks")]
+    pub resolve_symlinks: bool,
+    /// Displays file sizes.
+    #[arg(short = 'S', long = "show-sizes")]
+    pub show_sizes: bool,
 }
 
 /// The program's entrypoint.
@@ -127,12 +140,15 @@ pub fn main() -> Result<()> {
         hoisted.then(if arguments.reverse { sorted.reverse() } else { sorted })
     });
 
-    let name = display::Name::new(true);
-    let size = display::Size::new(true);
+    let name = display::Name::new(arguments.resolve_symlinks);
+    let size = arguments.show_sizes.then(|| display::Size::new(arguments.human_readable));
 
     for entry in &entries {
-        size.show(&mut stdout, entry)?;
-        stdout.write_all(&[b' '])?;
+        if let Some(ref size) = size {
+            size.show(&mut stdout, entry)?;
+            stdout.write_all(&[b' '])?;
+        }
+
         name.show(&mut stdout, entry)?;
         stdout.write_all(&[b'\n'])?;
     }

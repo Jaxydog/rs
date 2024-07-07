@@ -50,15 +50,21 @@ impl Name {
 
         cwrite!(bright_cyan; f, "{name}")?;
 
+        if !self.resolve_symlinks {
+            return Ok(());
+        }
+
         let Ok(path) = std::fs::read_link(&entry.path) else {
             return fail(f, "N/A");
         };
 
-        if !std::fs::exists(&path).is_ok_and(identity) {
+        let resolve_path = entry.path.parent().map_or_else(|| path.clone(), |p| p.join(&path));
+
+        if !std::fs::exists(&resolve_path).is_ok_and(identity) {
             return fail(f, path.to_string_lossy());
         }
 
-        let Ok(data) = std::fs::metadata(&path) else {
+        let Ok(data) = std::fs::metadata(&resolve_path) else {
             return fail(f, path.to_string_lossy());
         };
 
@@ -67,7 +73,7 @@ impl Name {
         let mut copy = self.clone();
 
         copy.trim_file_paths = false;
-        copy.show(f, &Entry { path, data })?;
+        copy.show(f, &Entry { path: resolve_path, data })?;
 
         Ok(())
     }
@@ -198,7 +204,7 @@ impl Size {
 
 impl Displayer for Size {
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
-        if !entry.data.is_file() {
+        if entry.data.is_dir() {
             return self.show_aligned(f, "- -  ", true);
         }
 
