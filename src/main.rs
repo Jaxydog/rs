@@ -45,7 +45,7 @@ display_impl! {
         pub character: char,
     } => {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write_by_char! {
+            write_by_pattern! {
                 use f, self.character;
 
                 '-' => bright_black,
@@ -64,6 +64,44 @@ display_impl! {
 }
 
 display_impl! {
+    pub struct FileSizeDisplay<'fp> {
+        pub bytes: u64,
+        pub metadata: &'fp std::fs::Metadata,
+    } => {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            const SUFFIXES: &[&str] = &["  B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
+
+            if !self.metadata.is_file() {
+                return write!(f, "{:>9}", '-'.if_supports_color(Stream::Stdout, |v| v.bright_black()));
+            } else if self.bytes == 0 {
+                return write!(f, "{:>9}", "0   B".if_supports_color(Stream::Stdout, |v| v.bright_green()));
+            }
+
+            let mut string = None;
+
+            for (index, suffix) in SUFFIXES.iter().enumerate() {
+                let min_bound = 1 << (10 * index);
+                let max_bound = 1 << (10 * (index + 1));
+
+                if (min_bound..max_bound).contains(&self.bytes) {
+                    if index > 0 {
+                        let value = self.bytes as f64 / min_bound as f64;
+
+                        string = Some(format!("{value:.1} {suffix}"));
+                    } else {
+                        string = Some(format!("{} {suffix}", self.bytes));
+                    };
+
+                    break;
+                }
+            }
+
+            let string = string.unwrap_or_else(|| format!("{}", self.bytes));
+
+            write!(f, "{:>9}", string.if_supports_color(Stream::Stdout, |v| v.bright_green()))
+        }
+    }
+
     pub struct FileNameDisplay<'fp> {
         pub path: &'fp std::path::Path,
         pub metadata: &'fp std::fs::Metadata,
@@ -133,6 +171,7 @@ fn main() -> std::io::Result<()> {
 
         #[cfg(unix)]
         write!(&mut lock, "{} ", ModeDisplay { mode: metadata.mode() })?;
+        write!(&mut lock, "{} ", FileSizeDisplay { bytes: metadata.size(), metadata })?;
         writeln!(&mut lock, "{}", FileNameDisplay { path: &entry.path(), metadata })?;
     }
 
@@ -149,21 +188,19 @@ macro_rules! write_by_condition {
 }
 
 #[macro_export]
-macro_rules! write_by_char {
+macro_rules! write_by_pattern {
     (use $formatter:expr, $expression:expr; $($pattern:literal => $color:ident),* $(,)?) => {
         match $expression {
             $(character @ $pattern => write!($formatter, "{}", character.if_supports_color(Stream::Stdout, |c| c.$color())),)*
             default => write!($formatter, "{default}"),
         }
     };
-    ($f:expr, $character:expr, [$($bind:literal -> $color:ident),* $(,)?]) => {
-        match $character {
-            $(
-                c @ $bind => write!($f, "{}", c.if_supports_color(Stream::Stdout, |v| v.$color())),
-            )*
-            default => write!($f, "{default}"),
+    (use $formatter:expr, $expression:expr; $($pattern:expr => $fmt:literal, $color:ident),* $(,)?) => {
+        match $expression {
+            $(character @ $pattern => write!($formatter, "{}", format_args!($fmt, character).if_supports_color(Stream::Stdout, |c| c.$color())),)*
+            default => write!($formatter, "{default}"),
         }
-    };
+    }
 }
 
 #[macro_export]
