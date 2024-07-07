@@ -135,18 +135,12 @@ fi
 
 if [ -d ~/.local/bin/ ] && [ "${opts[install]}" = true ]; then
     target="$HOME/.local/bin/rs"
-    [ -f "$target" ] && rm "$target"
-
-    cp "$executable" "$target"
-
-    echo "Compiled and copied to local programs ($target)."
 else
     target="./rs"
-    [ -f "$target" ] && rm "$target"
-
-    cp "$executable" "$target"
-
-    echo "Compiled and copied to current directory ($target)."
 fi
+
+[ -f "$target" ] && rm "$target"
+cp "$executable" "$target"
+echo "Compiled and copied to target ($target)."
 
 # spiders 🕷️🕸️
