@@ -15,9 +15,10 @@ pub trait Sorter {
 }
 
 /// Sorting types.
-#[derive(Clone, clap::ValueEnum)]
+#[derive(Clone, Debug, Default, clap::ValueEnum)]
 pub enum SortType {
     /// Sort by name.
+    #[default]
     Name,
     /// Sort by creation date.
     Created,

@@ -25,6 +25,7 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use clap::Parser;
+use sort::SortType;
 
 /// Provides interfaces for sorting entries.
 pub mod sort;
@@ -62,6 +63,9 @@ pub struct Arguments {
     /// Display entries starting with '.'.
     #[arg(short = 'a', long = "all")]
     pub show_all: bool,
+    /// Sorts entries using the given method.
+    #[arg(short = 's', long = "sort-by", default_value = "name")]
+    pub sort_by: SortType,
 }
 
 /// The program's entrypoint.
