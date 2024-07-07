@@ -38,7 +38,7 @@ text() {
 }
 
 error() {
-    echo "$(text red)$*$(text reset)"
+    echo "$(text red)$*$(text reset)" >&2 # Prints to stderr
 }
 
 opt() {
