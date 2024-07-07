@@ -27,7 +27,7 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use clap::Parser;
 use display::Displayer;
-use sort::{SortType, Sorter};
+use sort::{HoistType, SortType, Sorter};
 
 /// Provides interfaces for displaying information.
 pub mod display;
@@ -73,6 +73,9 @@ pub struct Arguments {
     /// Sorts entries using the given method.
     #[arg(short = 's', long = "sort-by", default_value = "name")]
     pub sort_by: SortType,
+    /// Groups entries at the top of the listing by the given type.
+    #[arg(short = 'H', long = "hoist", default_value = "none")]
+    pub hoist_by: HoistType,
 }
 
 /// The program's entrypoint.
@@ -81,7 +84,11 @@ pub struct Arguments {
 ///
 /// This function will return an error if the program's execution fails in an un-recoverable manner.
 pub fn main() -> Result<()> {
-    let arguments = Arguments::parse();
+    let mut arguments = Arguments::parse();
+
+    if arguments.sort_by == SortType::Size && arguments.hoist_by == HoistType::None {
+        arguments.hoist_by = HoistType::Directories;
+    }
 
     println!("{arguments:?}");
 
@@ -95,11 +102,18 @@ pub fn main() -> Result<()> {
         })?;
 
     entries.sort_unstable_by(|a, b| {
-        arguments.sort_by.sort(a, b).unwrap_or_else(|error| {
+        let hoisted = arguments.hoist_by.sort(a, b).unwrap_or_else(|error| {
+            eprintln!("failed to hoist - {error}");
+
+            std::cmp::Ordering::Equal
+        });
+        let sorted = arguments.sort_by.sort(a, b).unwrap_or_else(|error| {
             eprintln!("failed to sort - {error}");
 
             std::cmp::Ordering::Equal
-        })
+        });
+
+        hoisted.then(sorted)
     });
 
     let name = display::Name::new(true);
