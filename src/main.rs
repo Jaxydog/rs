@@ -106,7 +106,8 @@ pub fn main() -> Result<()> {
         arguments.hoist_by = HoistType::Directories;
     }
 
-    println!("{arguments:?}");
+    #[cfg(debug_assertions)]
+    dbg!(&arguments);
 
     let mut stdout = std::io::stdout().lock();
     let mut entries = std::fs::read_dir(&arguments.path)?
