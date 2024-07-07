@@ -18,6 +18,7 @@ $ arch @ PC > ~/dev/rust/rs > ./rs
 [-rw-r--r--]   160   B Cargo.toml
 [-rw-r--r--]  33.7 KiB LICENSE
 [-rw-r--r--]   1.1 KiB README.md
+[lrwxrwxrwx]         - rs -> rs*
 [-rw-r--r--]    32   B rust-toolchain.toml
 [-rw-r--r--]   1.0 KiB rustfmt.toml
 ```
