@@ -70,6 +70,9 @@ pub struct Arguments {
     /// Display entries starting with '.'.
     #[arg(short = 'a', long = "all")]
     pub all: bool,
+    /// Whether to reverse the sorting order.
+    #[arg(short = 'r', long = "reverse")]
+    pub reverse: bool,
     /// Sorts entries using the given method.
     #[arg(short = 's', long = "sort-by", default_value = "name")]
     pub sort_by: SortType,
@@ -121,7 +124,7 @@ pub fn main() -> Result<()> {
             std::cmp::Ordering::Equal
         });
 
-        hoisted.then(sorted)
+        hoisted.then(if arguments.reverse { sorted.reverse() } else { sorted })
     });
 
     let name = display::Name::new(true);
