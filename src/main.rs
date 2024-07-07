@@ -103,8 +103,11 @@ pub fn main() -> Result<()> {
     });
 
     let name = display::Name::new(true);
+    let size = display::Size::new(true);
 
     for entry in &entries {
+        size.show(&mut stdout, entry)?;
+        stdout.write_all(&[b' '])?;
         name.show(&mut stdout, entry)?;
         stdout.write_all(&[b'\n'])?;
     }
