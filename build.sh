@@ -95,11 +95,11 @@ while true; do
     esac
 done
 
-grep --quiet 'name = "rs"' './Cargo.toml' 2> /dev/null || {
+if ! grep --quiet 'name = "rs"' './Cargo.toml' 2> /dev/null; then
     error 'Script must be run in root directory of rs!'
 
     exit 1
-}
+fi
 
 if [ -d ./target/ ] && [ "${opts[clean]}" = true ]; then
     echo 'Cleaning up target directory.'
