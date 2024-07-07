@@ -133,10 +133,17 @@ if [ ! -f ./target/release/rs ]; then
     exit 1
 fi
 
-if [ -d ~/.local/bin/ ] && [ "${opts[install]}" = true ]; then
-    target="$HOME/.local/bin/rs"
-else
-    target="./rs"
+target="./rs"
+if [ "${opts[install]}" = true ]; then
+    desired_target="$HOME/.local/bin/rs"
+
+    if [ -d "$HOME/.local/bin/" ]; then
+        target="$desired_target"
+    else
+        error "Target $desired_target does not exist! Installing to current directory instead."
+    fi
+
+    unset desired_target
 fi
 
 [ -f "$target" ] && rm "$target"
