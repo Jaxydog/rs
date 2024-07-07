@@ -101,6 +101,14 @@ pub fn main() -> Result<()> {
             Ok::<_, std::io::Error>(vec)
         })?;
 
+    if !arguments.all {
+        entries.retain(|entry| {
+            let Some(name) = entry.path.file_name() else { return true };
+
+            !name.to_string_lossy().starts_with('.')
+        });
+    }
+
     entries.sort_unstable_by(|a, b| {
         let hoisted = arguments.hoist_by.sort(a, b).unwrap_or_else(|error| {
             eprintln!("failed to hoist - {error}");
