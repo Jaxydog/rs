@@ -21,12 +21,16 @@
 #![allow(clippy::module_name_repetitions)]
 
 use std::fs::{DirEntry, Metadata};
-use std::path::PathBuf;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use clap::Parser;
-use sort::SortType;
+use display::Displayer;
+use sort::{SortType, Sorter};
 
+/// Provides interfaces for displaying information.
+pub mod display;
 /// Provides interfaces for sorting entries.
 pub mod sort;
 
@@ -60,9 +64,12 @@ impl TryFrom<DirEntry> for Entry {
 #[derive(Clone, Debug, clap::Parser)]
 #[command(about, version, long_about = None)]
 pub struct Arguments {
+    /// The path to list.
+    #[arg(default_value = ".")]
+    pub path: Box<Path>,
     /// Display entries starting with '.'.
     #[arg(short = 'a', long = "all")]
-    pub show_all: bool,
+    pub all: bool,
     /// Sorts entries using the given method.
     #[arg(short = 's', long = "sort-by", default_value = "name")]
     pub sort_by: SortType,
@@ -76,5 +83,31 @@ pub struct Arguments {
 pub fn main() -> Result<()> {
     let arguments = Arguments::parse();
 
-    Ok(())
+    println!("{arguments:?}");
+
+    let mut stdout = std::io::stdout().lock();
+    let mut entries = std::fs::read_dir(&arguments.path)?
+        .map(|v| v.and_then(Entry::try_from))
+        .try_fold(Vec::new(), |mut vec, result| {
+            vec.push(result?);
+
+            Ok::<_, std::io::Error>(vec)
+        })?;
+
+    entries.sort_unstable_by(|a, b| {
+        arguments.sort_by.sort(a, b).unwrap_or_else(|error| {
+            eprintln!("failed to sort - {error}");
+
+            std::cmp::Ordering::Equal
+        })
+    });
+
+    let name = display::Name::new(true);
+
+    for entry in &entries {
+        name.show(&mut stdout, entry)?;
+        stdout.write_all(&[b'\n'])?;
+    }
+
+    stdout.flush().map_err(Into::into)
 }

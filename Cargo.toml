@@ -15,5 +15,6 @@ repository = "https://github.com/Jaxydog/rs"
 [dependencies]
 anyhow = "1.0"
 clap = { version = "4.5", features = ["derive"] }
+is_executable = "1.0"
 owo-colors = { version = "4.0", features = ["supports-colors"] }
 umask = "2.1"
