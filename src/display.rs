@@ -205,7 +205,7 @@ impl Size {
 impl Displayer for Size {
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
         if entry.data.is_dir() {
-            return self.show_aligned(f, "- -  ", true);
+            return self.show_aligned(f, if self.human_readable { "- -  " } else { "-" }, true);
         }
 
         let bytes = entry.data.len();
