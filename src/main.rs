@@ -110,7 +110,9 @@ fn main() -> std::io::Result<()> {
     let mut entries: Vec<_> = std::fs::read_dir(path)?.filter_map(Result::ok).collect();
 
     entries.sort_unstable_by(|a, b| {
-        let order = a.path().cmp(&b.path());
+        let a_path = a.path().to_string_lossy().to_lowercase();
+        let b_path = b.path().to_string_lossy().to_lowercase();
+        let order = a_path.cmp(&b_path);
 
         let (Ok(a_metadata), Ok(b_metadata)) = (a.metadata(), b.metadata()) else {
             return order;
