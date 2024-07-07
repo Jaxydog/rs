@@ -1,8 +1,19 @@
 [package]
 name = "rs"
+description = "A Rust implementation of 'ls'."
+authors = ["Jaxydog"]
+categories = ["command-line-utilities", "filesystem"]
+keywords = ["ls"]
+
 version = "0.1.0"
 edition = "2021"
 
+license = "AGPL-3.0-or-later"
+readme = "README.md"
+repository = "https://github.com/Jaxydog/rs"
+
 [dependencies]
-owo-colors = { version = "4.0.0", features = ["supports-colors"] }
-unix_mode = "0.1.4"
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+owo-colors = { version = "4.0", features = ["supports-colors"] }
+umask = "2.1"
