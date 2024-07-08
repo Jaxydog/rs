@@ -26,13 +26,19 @@ text() {
         dim | faint )
             color="\e[2m"
             ;;
+        red )
+            color="\e[31m"
+            ;;
         reset | normal | * )
             color="\e[0m"
             ;;
     esac
 
-
     echo -e "$color"
+}
+
+error() {
+    echo "$(text red)$*$(text reset)" >&2 # Prints to stderr
 }
 
 opt() {
@@ -48,14 +54,15 @@ $(text bold)Arguments:$(text reset)
   $(opt -i --install)  Installs to ~/.local/bin, or, if that doesn't exist,
                      the current working directory.
   $(opt -c --clean)    Runs \`cargo clean\` before building.
+  $(opt -d --debug)    Builds in debug mode instead of release mode.
 EOF
 }
 
 args=""
 args=$(getopt \
     --name "build.sh" \
-    --options i,c,h \
-    --longoptions install,clean,help \
+    --options h,i,c,d \
+    --longoptions help,install,clean,debug \
     -- "$@")
 
 eval set -- "$args"
@@ -64,9 +71,14 @@ unset args
 declare -A opts
 opts[install]=false
 opts[clean]=false
+opts[debug]=false
 
 while true; do
     case "$1" in
+        -h | --help )
+            help
+            exit 0
+            ;;
         -i | --install )
             opts[install]=true
             shift
@@ -75,9 +87,9 @@ while true; do
             opts[clean]=true
             shift
             ;;
-        -h | --help )
-            help
-            exit 0
+        -d | --debug)
+            opts[debug]=true
+            shift
             ;;
         -- )
             shift
@@ -89,6 +101,11 @@ while true; do
     esac
 done
 
+if ! grep --quiet 'name = "rs"' './Cargo.toml' 2> /dev/null; then
+    error 'Script must be run in root directory of rs!'
+
+    exit 1
+fi
 
 if [ -d ./target/ ] && [ "${opts[clean]}" = true ]; then
     echo 'Cleaning up target directory.'
@@ -100,30 +117,37 @@ fi
 
 echo 'Building command binary.'
 
-cargo build --release
+if [ "${opts[debug]}" = true ]; then
+    cargo build
+    executable="./target/debug/rs"
+else
+    cargo build --release
+    executable="./target/release/rs"
+fi
 
 echo
 
-if [ ! -f ./target/release/rs ]; then
-    echo "Unable to find 'rs' binary."
+if [ ! -f "$executable" ]; then
+    error "Unable to find 'rs' binary."
 
     exit 1
 fi
 
-if [ -d ~/.local/bin/ ] && [ "${opts[install]}" = true ]; then
-    target="$HOME/.local/bin/rs"
-    [ -f "$target" ] && rm "$target"
+target="./rs"
+if [ "${opts[install]}" = true ]; then
+    desired_target="$HOME/.local/bin/rs"
 
-    cp './target/release/rs' "$target"
+    if [ -d "$HOME/.local/bin/" ]; then
+        target="$desired_target"
+    else
+        error "Target $desired_target does not exist! Installing to current directory instead."
+    fi
 
-    echo "Compiled and copied to local programs ($target)."
-else
-    target="./rs"
-    [ -f "$target" ] && rm "$target"
-
-    cp './target/release/rs' "$target"
-
-    echo "Compiled and copied to current directory ($target)."
+    unset desired_target
 fi
+
+[ -f "$target" ] && rm "$target"
+cp "$executable" "$target"
+echo "Compiled and copied to target ($target)."
 
 # spiders 🕷️🕸️
