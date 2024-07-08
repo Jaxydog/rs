@@ -127,7 +127,7 @@ fi
 
 echo
 
-if [ ! -f ./target/release/rs ]; then
+if [ ! -f "$executable" ]; then
     error "Unable to find 'rs' binary."
 
     exit 1
