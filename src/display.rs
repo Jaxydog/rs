@@ -1,5 +1,6 @@
 use std::convert::identity;
 use std::fmt::Display;
+use std::fs::Metadata;
 use std::io::Write;
 use std::path::MAIN_SEPARATOR;
 
@@ -215,6 +216,102 @@ impl Displayer for Size {
         } else {
             self.show_aligned(f, bytes, false)
         }
+    }
+}
+
+/// Displays an entry's permissions.
+#[non_exhaustive]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Permissions {}
+
+#[allow(clippy::unused_self)]
+impl Permissions {
+    /// Creates a new [`Permissions`].
+    #[must_use]
+    pub const fn new() -> Self {
+        Self {}
+    }
+
+    /// Displays an entry's Unix permissions.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the permissions could not be displayed.
+    #[cfg(target_family = "unix")]
+    fn show_unix<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
+        let mode = <Metadata as std::os::unix::fs::MetadataExt>::mode(&entry.data);
+        let string = ::umask::Mode::from(mode).to_string();
+
+        for character in string.chars() {
+            self.show_char(f, character)?;
+        }
+
+        Ok(())
+    }
+
+    /// Displays an entry's Windows permissions.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the permissions could not be displayed.
+    #[cfg(target_family = "windows")]
+    fn show_windows<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
+        use crate::utility::WindowsPermissions;
+
+        let bits = <Metadata as std::os::windows::fs::MetadataExt>::file_attributes(&entry.data);
+        let string = WindowsPermissions { bits }.to_string();
+
+        for character in string.chars() {
+            self.show_char(f, character)?;
+        }
+
+        Ok(())
+    }
+
+    /// Displays an entry's permission character.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the permission could not be displayed.
+    fn show_char<W: Write>(&self, f: &mut W, character: char) -> Result<()> {
+        match character {
+            c @ '-' => cwrite!(bright_black; f, "{c}"),
+            c @ 'r' => cwrite!(bright_yellow; f, "{c}"),
+            c @ 'w' => cwrite!(bright_red; f, "{c}"),
+            c @ 'x' => cwrite!(bright_green; f, "{c}"),
+            c @ 'd' => cwrite!(bright_blue; f, "{c}"),
+            c @ 'l' => cwrite!(bright_cyan; f, "{c}"),
+            c @ '.' => cwrite!(white; f, "{c}"),
+            unknown => cwrite!(bright_magenta; f, "{unknown}"),
+        }
+        .map_err(Into::into)
+    }
+}
+
+impl Displayer for Permissions {
+    fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
+        cwrite!(bright_black; f, "[")?;
+
+        if entry.data.is_file() {
+            self.show_char(f, '.')?;
+        } else if entry.data.is_dir() {
+            self.show_char(f, 'd')?;
+        } else if entry.data.is_symlink() {
+            self.show_char(f, 'l')?;
+        } else {
+            self.show_char(f, '-')?;
+        }
+
+        // These extra attributes are needed to ensure that the compiler is happy.
+        if cfg!(target_family = "unix") {
+            #[cfg(target_family = "unix")]
+            self.show_unix(f, entry)?;
+        } else if cfg!(target_family = "windows") {
+            #[cfg(target_family = "windows")]
+            self.show_windows(f, entry)?;
+        }
+
+        cwrite!(bright_black; f, "]").map_err(Into::into)
     }
 }
 

@@ -33,6 +33,8 @@ use sort::{HoistType, SortType, Sorter};
 pub mod display;
 /// Provides interfaces for sorting entries.
 pub mod sort;
+/// Provides utilities.
+pub mod utility;
 
 /// A file system entry.
 #[derive(Clone, Debug)]
@@ -92,6 +94,9 @@ pub struct Arguments {
     /// Displays file sizes.
     #[arg(short = 'S', long = "show-sizes")]
     pub show_sizes: bool,
+    /// Displays file permissions.
+    #[arg(short = 'P', long = "show-permissions")]
+    pub show_permissions: bool,
 }
 
 /// The program's entrypoint.
@@ -143,8 +148,13 @@ pub fn main() -> Result<()> {
 
     let name = display::Name::new(arguments.resolve_symlinks);
     let size = arguments.show_sizes.then(|| display::Size::new(arguments.human_readable));
+    let permissions = arguments.show_permissions.then(display::Permissions::new);
 
     for entry in &entries {
+        if let Some(ref permissions) = permissions {
+            permissions.show(&mut stdout, entry)?;
+            stdout.write_all(&[b' '])?;
+        }
         if let Some(ref size) = size {
             size.show(&mut stdout, entry)?;
             stdout.write_all(&[b' '])?;
