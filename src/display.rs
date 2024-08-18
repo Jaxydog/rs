@@ -316,14 +316,11 @@ impl Displayer for Permissions {
             self.show_char(f, '-')?;
         }
 
-        // These extra attributes are needed to ensure that the compiler is happy.
-        if cfg!(target_family = "unix") {
-            #[cfg(target_family = "unix")]
-            self.show_unix(f, entry)?;
-        } else if cfg!(target_family = "windows") {
-            #[cfg(target_family = "windows")]
-            self.show_windows(f, entry)?;
-        }
+        #[cfg(target_family = "unix")]
+        self.show_unix(f, entry)?;
+
+        #[cfg(target_family = "windows")]
+        self.show_windows(f, entry)?;
 
         cwrite!(bright_black; f, "]").map_err(Into::into)
     }
