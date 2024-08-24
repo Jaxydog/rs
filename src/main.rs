@@ -153,15 +153,15 @@ pub fn main() -> Result<()> {
     for entry in &entries {
         if let Some(ref permissions) = permissions {
             permissions.show(&mut stdout, entry)?;
-            stdout.write_all(&[b' '])?;
+            stdout.write_all(b" ")?;
         }
         if let Some(ref size) = size {
             size.show(&mut stdout, entry)?;
-            stdout.write_all(&[b' '])?;
+            stdout.write_all(b" ")?;
         }
 
         name.show(&mut stdout, entry)?;
-        stdout.write_all(&[b'\n'])?;
+        stdout.write_all(b"\n")?;
     }
 
     stdout.flush().map_err(Into::into)
