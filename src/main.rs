@@ -18,6 +18,7 @@
 //! A Rust implementation of 'ls'.
 #![deny(clippy::unwrap_used, unsafe_code)]
 #![warn(clippy::cargo, clippy::nursery, clippy::pedantic, clippy::todo, missing_docs)]
+#![warn(clippy::alloc_instead_of_core, clippy::std_instead_of_alloc, clippy::std_instead_of_core)]
 #![allow(clippy::module_name_repetitions)]
 
 use std::fs::{DirEntry, Metadata};
@@ -132,12 +133,12 @@ pub fn main() -> std::io::Result<()> {
         let hoisted = arguments.hoist_by.sort(a, b).unwrap_or_else(|error| {
             eprintln!("failed to hoist - {error}");
 
-            std::cmp::Ordering::Equal
+            core::cmp::Ordering::Equal
         });
         let sorted = arguments.sort_by.sort(a, b).unwrap_or_else(|error| {
             eprintln!("failed to sort - {error}");
 
-            std::cmp::Ordering::Equal
+            core::cmp::Ordering::Equal
         });
 
         hoisted.then(if arguments.reverse { sorted.reverse() } else { sorted })

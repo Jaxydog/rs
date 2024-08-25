@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use core::fmt::Display;
 use std::io::{Result, Write};
 use std::path::MAIN_SEPARATOR;
 
@@ -49,7 +49,7 @@ impl Name {
 
         let resolve_path = entry.path.parent().map_or_else(|| path.clone(), |p| p.join(&path));
 
-        if !std::fs::exists(&resolve_path).is_ok_and(std::convert::identity) {
+        if !std::fs::exists(&resolve_path).is_ok_and(core::convert::identity) {
             return fail(f, path.to_string_lossy());
         }
 

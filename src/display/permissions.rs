@@ -123,34 +123,34 @@ impl WindowsPermissions {
 
     /// Returns whether this [`WindowsPermissions`] is read-only.
     #[must_use]
-    pub const fn is_readonly(&self) -> bool {
+    pub const fn is_readonly(self) -> bool {
         self.has_flag(1 << 0)
     }
 
     /// Returns whether this [`WindowsPermissions`] is hidden.
     #[must_use]
-    pub const fn is_hidden(&self) -> bool {
+    pub const fn is_hidden(self) -> bool {
         self.has_flag(1 << 1)
     }
 
     /// Returns whether this [`WindowsPermissions`] is a system entry.
     #[must_use]
-    pub const fn is_system(&self) -> bool {
+    pub const fn is_system(self) -> bool {
         self.has_flag(1 << 2)
     }
 
     /// Returns whether this [`WindowsPermissions`] is an archive.
     #[must_use]
-    pub const fn is_archive(&self) -> bool {
+    pub const fn is_archive(self) -> bool {
         self.has_flag(1 << 4)
     }
 }
 
 #[cfg(target_family = "windows")]
-impl std::fmt::Display for WindowsPermissions {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for WindowsPermissions {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         #[inline]
-        fn write(f: &mut std::fmt::Formatter<'_>, b: bool, c: char) -> std::fmt::Result {
+        fn write(f: &mut core::fmt::Formatter<'_>, b: bool, c: char) -> core::fmt::Result {
             write!(f, "{}", if b { c } else { '-' })
         }
 
