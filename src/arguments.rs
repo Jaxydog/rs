@@ -46,8 +46,7 @@ const HELP: &str = concat!(
                             - Default value: none
                             - Possible options: [none, directories, hidden]
 
-    -U, --human-readable    Display human-readable file sizes.
-                            - Only valid when `--show-permissions` is specified"
+    -U, --human-readable    Display human-readable file sizes."
 );
 
 /// The application's command-line arguments.
