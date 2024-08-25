@@ -17,19 +17,39 @@
 
 use std::io::{Result, Write};
 
-use time::{format_description::FormatItem, OffsetDateTime, UtcOffset};
+use time::format_description::FormatItem;
+use time::{OffsetDateTime, UtcOffset};
 
 use crate::cwrite;
 
 use super::Displayer;
 
-const FORMAT: &[FormatItem] = time::macros::format_description!(
+/// A human-friendly format.
+const HUMAN_FORMAT: &[FormatItem] = time::macros::format_description!(
     version = 2,
     "[day padding:space] [month repr:short] '[year repr:last_two] [hour padding:space repr:24]:[minute padding:zero]"
 );
+/// A more machine-friendly format.
+const MACHINE_FORMAT: &[FormatItem] = time::macros::format_description!(
+    version = 2,
+    "[year]-[month padding:zero]-[day padding:zero] [hour padding:zero repr:24]:[minute padding:zero]"
+);
 
 /// Display's an entry's modification date.
-pub struct Modified {}
+#[non_exhaustive]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Modified {
+    /// Whether to use human-readable units.
+    pub human_readable: bool,
+}
+
+impl Modified {
+    /// Creates a new [`Modified`].
+    #[must_use]
+    pub const fn new(human_readable: bool) -> Self {
+        Self { human_readable }
+    }
+}
 
 impl Displayer for Modified {
     fn show<W: Write>(&self, f: &mut W, entry: &crate::Entry) -> Result<()> {
@@ -40,6 +60,8 @@ impl Displayer for Modified {
             time = time.to_offset(offset);
         }
 
-        cwrite!(bright_blue; f, "{}", time.format(FORMAT).expect("the compiled format is incorrectly defined"))
+        let format = if self.human_readable { HUMAN_FORMAT } else { MACHINE_FORMAT };
+
+        cwrite!(bright_blue; f, "{}", time.format(format).expect("the compiled format is incorrectly defined"))
     }
 }

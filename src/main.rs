@@ -108,7 +108,7 @@ pub fn main() -> Result<()> {
     let name = display::Name::new(arguments.show_symlinks);
     let size = arguments.show_sizes.then(|| display::Size::new(arguments.use_human_sizes));
     let permissions = arguments.show_permissions.then(display::Permissions::new);
-    let modified = arguments.show_modified.then_some(display::Modified {});
+    let modified = arguments.show_modified.then(|| display::Modified::new(arguments.use_human_sizes));
 
     for entry in &entries {
         if let Some(ref permissions) = permissions {
