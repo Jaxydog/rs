@@ -33,8 +33,6 @@ use sort::{HoistType, SortType, Sorter};
 pub mod display;
 /// Provides interfaces for sorting entries.
 pub mod sort;
-/// Provides utilities.
-pub mod utility;
 
 /// A file system entry.
 #[derive(Clone, Debug)]
