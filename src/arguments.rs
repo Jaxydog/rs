@@ -96,7 +96,7 @@ pub enum Output {
 pub fn parse() -> Arguments {
     let arguments = std::env::args().skip(1).collect::<Box<[_]>>();
 
-    match self::parse_arguments(&Options::new(&arguments)) {
+    match self::parse_arguments(Options::new(arguments.iter().map(String::as_str))) {
         Output::Arguments(arguments) => arguments,
         Output::Exit => {
             drop(arguments);
@@ -115,10 +115,10 @@ pub fn parse() -> Arguments {
 }
 
 /// Parses the given options.
-fn parse_arguments(options: &Options<'_, String>) -> Output {
+fn parse_arguments<'arg>(mut options: Options<&'arg str, impl Iterator<Item = &'arg str>>) -> Output {
     let mut arguments = Arguments::default();
 
-    while let Some(option) = options.next() {
+    while let Some(option) = options.next_opt().transpose() {
         let option = match option {
             Ok(option) => option,
             Err(error) => return Output::Error(format!("{error}")),
@@ -151,7 +151,7 @@ fn parse_arguments(options: &Options<'_, String>) -> Output {
                 arguments.sort_reversed = true;
             }
             Opt::Long("sort") | Opt::Short('s') => {
-                arguments.sort_function = match options.value_str() {
+                arguments.sort_function = match options.value() {
                     Err(_) | Ok("name") => SortType::Name,
                     Ok("size") => SortType::Size,
                     Ok("created") => SortType::Created,
@@ -160,7 +160,7 @@ fn parse_arguments(options: &Options<'_, String>) -> Output {
                 };
             }
             Opt::Long("hoist") | Opt::Short('H') => {
-                arguments.hoist_function = match options.value_str() {
+                arguments.hoist_function = match options.value() {
                     Err(_) | Ok("none") => HoistType::None,
                     Ok("directories" | "dirs") => HoistType::Directories,
                     Ok("hidden") => HoistType::Hidden,

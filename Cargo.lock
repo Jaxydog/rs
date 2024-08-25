@@ -4,9 +4,9 @@ version = 3
 
 [[package]]
 name = "getargs"
-version = "0.4.1"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9cfacaadcc56dafd87f2eab940162f1b41008c1752af63d1a1e29b542cb04cf1"
+checksum = "084c6b182b01dec54ff12986b9cc8859a9b0d92b074f878c382a4481a070e66e"
 
 [[package]]
 name = "hermit-abi"
