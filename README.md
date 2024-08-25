@@ -14,7 +14,7 @@ Arguments:
 - Options:
     - `-A`, `--all`: Displays hidden entries
     - `-r`, `--reverse`: Reverses the sorting order
-    - `-s`, `--sort-by` `<SORT_BY>`:
+    - `-s`, `--sort` `<SORT_BY>`:
     - Sorts entries using the given method (default: `name`). Possible values:
         - `name`: Sort by name
         - `size`: Sort by size
