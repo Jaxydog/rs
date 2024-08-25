@@ -33,7 +33,7 @@ pub trait Sorter {
 }
 
 /// Sorting types.
-#[derive(Clone, Debug, Default, PartialEq, Eq, clap::ValueEnum)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub enum SortType {
     /// Sort by name.
     #[default]
@@ -58,7 +58,7 @@ impl Sorter for SortType {
 }
 
 /// Hoisting types.
-#[derive(Clone, Debug, Default, PartialEq, Eq, clap::ValueEnum)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub enum HoistType {
     /// Don't hoist anything.
     #[default]
