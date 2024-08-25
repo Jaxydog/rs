@@ -16,6 +16,7 @@ repository = "https://github.com/Jaxydog/rs"
 is_executable = "1.0"
 getargs = "0.5"
 owo-colors = { version = "4.0", features = ["supports-colors"] }
+time = { version = "0.3", features = ["formatting", "local-offset", "macros"] }
 
 [target.'cfg(unix)'.dependencies]
 umask = "2.1"

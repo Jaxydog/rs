@@ -32,8 +32,9 @@ const HELP: &str = concat!(
     -V, --version           Display this program's version.
 
     -A, --all               Display hidden files.
-    -S, --show-sizes        Display file sizes.
     -P, --show-permissions  Display file permissions.
+    -S, --show-sizes        Display file sizes.
+    -M, --show-modified     Display file modification date.
     -L, --resolve-symlinks  Display resolved symbolic links.
 
     -r, --reverse           Reverse the displayed sorting order.
@@ -61,6 +62,8 @@ pub struct Arguments {
     pub show_hidden: bool,
     /// Whether to display file sizes.
     pub show_sizes: bool,
+    /// Whether to display file modification date.
+    pub show_modified: bool,
     /// Whether to display file permissions.
     pub show_permissions: bool,
     /// Whether to display resolved symbolic links.
@@ -138,11 +141,14 @@ fn parse_arguments<'arg>(mut options: Options<&'arg str, impl Iterator<Item = &'
             Opt::Long("all") | Opt::Short('A') => {
                 arguments.show_hidden = true;
             }
+            Opt::Long("show-permissions") | Opt::Short('P') => {
+                arguments.show_permissions = true;
+            }
             Opt::Long("show-sizes") | Opt::Short('S') => {
                 arguments.show_sizes = true;
             }
-            Opt::Long("show-permissions") | Opt::Short('P') => {
-                arguments.show_permissions = true;
+            Opt::Long("show-modified") | Opt::Short('M') => {
+                arguments.show_modified = true;
             }
             Opt::Long("resolve-symlinks") | Opt::Short('L') => {
                 arguments.show_symlinks = true;
