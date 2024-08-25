@@ -24,12 +24,10 @@ jobs:
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-    - name: Setup - Install Nightly
-      run: rustup toolchain install nightly
     - name: Setup - Install Clippy
-      run: rustup component add clippy --toolchain nightly
+      run: rustup component add clippy
     - name: Setup - Install RustFmt
-      run: rustup component add rustfmt --toolchain nightly
+      run: rustup component add rustfmt
 
     - name: Action - Compile binary
       run: cargo build --verbose

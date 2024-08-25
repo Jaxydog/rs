@@ -1,3 +1,5 @@
+extern crate alloc;
+
 use core::fmt::Display;
 use std::io::{Result, Write};
 
@@ -14,7 +16,7 @@ pub struct Size {
 
 impl Size {
     /// All accepted human-readable byte suffixes.
-    pub const SUFFIXES: [&str; 7] = ["B  ", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
+    pub const SUFFIXES: [&'static str; 7] = ["B  ", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
 
     /// Creates a new [`Size`].
     #[must_use]
@@ -37,16 +39,18 @@ impl Size {
         } else {
             let string = v.to_string();
 
-            if string.len() <= 9 { string } else { format!("{:>6}...", &string[.. 6]) }
+            if string.len() <= 9 {
+                string
+            } else {
+                format!("{:>6}...", &string[..6])
+            }
         };
 
         if dim {
-            cwrite!(bright_black; f, "{output:>9}")?;
+            cwrite!(bright_black; f, "{output:>9}")
         } else {
-            cwrite!(bright_green; f, "{output:>9}")?;
+            cwrite!(bright_green; f, "{output:>9}")
         }
-
-        Ok(())
     }
 
     /// Displays the given size in bytes in a human-readable format.
@@ -63,7 +67,7 @@ impl Size {
         for (index, suffix) in Self::SUFFIXES.iter().enumerate() {
             let min_bound = 1 << (10 * index);
             let max_bound = 1 << (10 * (index + 1));
-            let suffix_bounds = min_bound .. max_bound;
+            let suffix_bounds = min_bound..max_bound;
 
             if suffix_bounds.contains(&bytes) {
                 return if index == 0 {

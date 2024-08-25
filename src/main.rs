@@ -21,6 +21,8 @@
 #![warn(clippy::alloc_instead_of_core, clippy::std_instead_of_alloc, clippy::std_instead_of_core)]
 #![allow(clippy::module_name_repetitions)]
 
+extern crate alloc;
+
 use std::fs::{DirEntry, Metadata};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -113,13 +115,14 @@ pub fn main() -> std::io::Result<()> {
     dbg!(&arguments);
 
     let mut stdout = std::io::stdout().lock();
-    let mut entries = std::fs::read_dir(&arguments.path)?
-        .map(|v| v.and_then(Entry::try_from))
-        .try_fold(Vec::new(), |mut vec, result| {
+    let mut entries = std::fs::read_dir(&arguments.path)?.map(|v| v.and_then(Entry::try_from)).try_fold(
+        Vec::new(),
+        |mut vec, result| {
             vec.push(result?);
 
             Ok::<_, std::io::Error>(vec)
-        })?;
+        },
+    )?;
 
     if !arguments.all {
         entries.retain(|entry| {

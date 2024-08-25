@@ -1,3 +1,5 @@
+extern crate alloc;
+
 use core::fmt::Display;
 use std::io::{Result, Write};
 use std::path::MAIN_SEPARATOR;
@@ -49,7 +51,7 @@ impl Name {
 
         let resolve_path = entry.path.parent().map_or_else(|| path.clone(), |p| p.join(&path));
 
-        if !std::fs::exists(&resolve_path).is_ok_and(core::convert::identity) {
+        if !resolve_path.try_exists().is_ok_and(core::convert::identity) {
             return fail(f, path.to_string_lossy());
         }
 

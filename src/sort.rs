@@ -1,3 +1,5 @@
+extern crate alloc;
+
 use core::cmp::Ordering;
 use std::io::Result;
 
@@ -132,8 +134,7 @@ impl Sorter for HoistHidden {
         let Some(a_name) = a.path.file_name() else { return Ok(Ordering::Equal) };
         let Some(b_name) = b.path.file_name() else { return Ok(Ordering::Equal) };
 
-        match (a_name.to_string_lossy().starts_with('.'), b_name.to_string_lossy().starts_with('.'))
-        {
+        match (a_name.to_string_lossy().starts_with('.'), b_name.to_string_lossy().starts_with('.')) {
             (true, false) => Ok(Ordering::Less),
             (false, true) => Ok(Ordering::Greater),
             _ => Ok(Ordering::Equal),

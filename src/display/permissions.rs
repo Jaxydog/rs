@@ -1,3 +1,5 @@
+extern crate alloc;
+
 use std::fs::Metadata;
 use std::io::{Result, Write};
 

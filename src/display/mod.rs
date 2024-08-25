@@ -1,3 +1,5 @@
+extern crate alloc;
+
 use std::io::Write;
 
 pub use self::name::Name;
@@ -32,11 +34,9 @@ pub trait Displayer {
 #[macro_export]
 macro_rules! color {
     ($color:ident; $display:expr) => {
-        <_ as ::owo_colors::OwoColorize>::if_supports_color(
-            &$display,
-            ::owo_colors::Stream::Stdout,
-            |v| <_ as ::owo_colors::OwoColorize>::$color(v),
-        )
+        <_ as ::owo_colors::OwoColorize>::if_supports_color(&$display, ::owo_colors::Stream::Stdout, |v| {
+            <_ as ::owo_colors::OwoColorize>::$color(v)
+        })
     };
 }
 
@@ -50,7 +50,7 @@ macro_rules! color {
 #[macro_export]
 macro_rules! cwrite {
     ($color:ident; $writer:expr, $($args:tt)+) => {
-        ::std::write!($writer, "{}", $crate::color!($color; ::std::format_args!($($args)+)))
+        ::core::write!($writer, "{}", $crate::color!($color; ::core::format_args!($($args)+)))
     };
 }
 
@@ -64,6 +64,6 @@ macro_rules! cwrite {
 #[macro_export]
 macro_rules! cwriteln {
     ($color:ident; $writer:expr, $($args:tt)+) => {
-        ::std::writeln!($writer, "{}", $crate::color!($color; ::std::format_args!($($args)+)))
+        ::core::writeln!($writer, "{}", $crate::color!($color; ::core::format_args!($($args)+)))
     };
 }
