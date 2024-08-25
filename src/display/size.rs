@@ -1,7 +1,5 @@
 use std::fmt::Display;
-use std::io::Write;
-
-use anyhow::Result;
+use std::io::{Result, Write};
 
 use super::Displayer;
 use crate::{cwrite, Entry};
@@ -29,7 +27,11 @@ impl Size {
     /// # Errors
     ///
     /// This function will return an error if the value cannot be displayed.
-    fn show_aligned<W: Write, T: Display>(&self, f: &mut W, v: T, dim: bool) -> Result<()> {
+    fn show_aligned<W, T>(&self, f: &mut W, v: T, dim: bool) -> Result<()>
+    where
+        W: Write,
+        T: Display,
+    {
         let output = if self.human_readable {
             format!("{v:>9}")
         } else {

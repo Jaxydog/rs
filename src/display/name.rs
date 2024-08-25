@@ -1,8 +1,7 @@
 use std::fmt::Display;
-use std::io::Write;
+use std::io::{Result, Write};
 use std::path::MAIN_SEPARATOR;
 
-use anyhow::Result;
 use is_executable::IsExecutable;
 
 use super::Displayer;
@@ -35,7 +34,7 @@ impl Name {
         #[inline]
         fn fail<W: Write, D: Display>(f: &mut W, v: D) -> Result<()> {
             cwrite!(bright_black; f, " ~> ")?;
-            cwrite!(bright_red; f, "{v}").map_err(Into::into)
+            cwrite!(bright_red; f, "{v}")
         }
 
         cwrite!(bright_cyan; f, "{name}")?;

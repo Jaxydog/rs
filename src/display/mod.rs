@@ -1,7 +1,5 @@
 use std::io::Write;
 
-use anyhow::Result;
-
 pub use self::name::Name;
 pub use self::permissions::Permissions;
 pub use self::size::Size;
@@ -21,7 +19,7 @@ pub trait Displayer {
     /// # Errors
     ///
     /// This function will return an error if the entry could not be displayed.
-    fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()>;
+    fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> std::io::Result<()>;
 }
 
 /// Applies a color to the given displayable value.

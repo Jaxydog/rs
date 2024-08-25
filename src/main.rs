@@ -24,7 +24,6 @@ use std::fs::{DirEntry, Metadata};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
 use clap::Parser;
 use display::Displayer;
 use sort::{HoistType, SortType, Sorter};
@@ -102,7 +101,7 @@ pub struct Arguments {
 /// # Errors
 ///
 /// This function will return an error if the program's execution fails in an un-recoverable manner.
-pub fn main() -> Result<()> {
+pub fn main() -> std::io::Result<()> {
     let mut arguments = Arguments::parse();
 
     if arguments.sort_by == SortType::Size && arguments.hoist_by == HoistType::None {
@@ -162,5 +161,5 @@ pub fn main() -> Result<()> {
         stdout.write_all(b"\n")?;
     }
 
-    stdout.flush().map_err(Into::into)
+    stdout.flush()
 }

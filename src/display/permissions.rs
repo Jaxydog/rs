@@ -1,7 +1,5 @@
 use std::fs::Metadata;
-use std::io::Write;
-
-use anyhow::Result;
+use std::io::{Result, Write};
 
 use super::Displayer;
 use crate::{cwrite, Entry};
@@ -83,7 +81,6 @@ impl Permissions {
             // Anything else.
             unknown => cwrite!(bright_magenta; f, "{unknown}"),
         }
-        .map_err(Into::into)
     }
 }
 

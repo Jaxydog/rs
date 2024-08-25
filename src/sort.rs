@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
-
-use anyhow::Result;
+use std::io::Result;
 
 use crate::Entry;
 
