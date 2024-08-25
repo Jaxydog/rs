@@ -55,14 +55,15 @@ $(text bold)Arguments:$(text reset)
                      the current working directory.
   $(opt -c --clean)    Runs \`cargo clean\` before building.
   $(opt -d --debug)    Builds in debug mode instead of release mode.
+  $(opt -s --strip)    Strips the binary after building.
 EOF
 }
 
 args=""
 args=$(getopt \
     --name "build.sh" \
-    --options h,i,c,d \
-    --longoptions help,install,clean,debug \
+    --options h,i,c,d,s \
+    --longoptions help,install,clean,debug,strip \
     -- "$@")
 
 eval set -- "$args"
@@ -72,6 +73,7 @@ declare -A opts
 opts[install]=false
 opts[clean]=false
 opts[debug]=false
+opts[strip]=false
 
 while true; do
     case "$1" in
@@ -89,6 +91,10 @@ while true; do
             ;;
         -d | --debug)
             opts[debug]=true
+            shift
+            ;;
+        -s | --strip)
+            opts[strip]=true
             shift
             ;;
         -- )
@@ -131,6 +137,12 @@ if [ ! -f "$executable" ]; then
     error "Unable to find 'rs' binary."
 
     exit 1
+fi
+
+if [ "${opts[strip]}" = true ]; then
+    echo "Stripping command binary."
+    
+    strip "$executable"
 fi
 
 target="./rs"
