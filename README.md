@@ -12,7 +12,7 @@ $ rs [OPTIONS] [PATH]
 Arguments:
 - Path: The path to list (default: `.`)
 - Options:
-    - `-a`, `--all`: Displays hidden entries
+    - `-A`, `--all`: Displays hidden entries
     - `-r`, `--reverse`: Reverses the sorting order
     - `-s`, `--sort-by` `<SORT_BY>`:
     - Sorts entries using the given method (default: `name`). Possible values:
@@ -25,7 +25,7 @@ Arguments:
         - `directories`: Hoist directories
         - `hidden`: Hoist hidden files
     - `-U`, `--human-readable`: Whether to use human-readable units
-    - `-R`, `--resolve-symlinks`: Resolves symlink paths
+    - `-L`, `--resolve-symlinks`: Resolves symlink paths
     - `-S`, `--show-sizes`: Displays file sizes
     - `-h`, `--help`: Print help (see a summary with `-h`)
     - `-V`, `--version`: Print version
@@ -49,7 +49,7 @@ target/
 
 With some options:
 ```
-$ ./rs --all --hoist directories --show-sizes --human-readable --resolve-symlinks --sort-by size
+$ ./rs --all --hoist directories --show-sizes --human-readable --resolve-symlinks --sort size
     - -   .git/
     - -   target/
     - -   src/
