@@ -2,7 +2,7 @@
 
 A Rust implementation of [`ls`](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/ls.html).
 
-Not intended to POSIX-compliant or an otherwise legimately used tool, just a fun project. See [eza](https://github.com/eza-community/eza) if you're looking for a replacement.
+Not intended to be POSIX-compliant or an otherwise legimately used tool, just a fun project. See [eza](https://github.com/eza-community/eza) if you're looking for a replacement.
 
 ## Usage
 
