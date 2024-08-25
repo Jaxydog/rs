@@ -27,6 +27,7 @@ Arguments:
     - `-U`, `--human-readable`: Whether to use human-readable units
     - `-L`, `--resolve-symlinks`: Resolves symlink paths
     - `-S`, `--show-sizes`: Displays file sizes
+    - `-M`, `--show-modified`: Displays file modification dates
     - `-h`, `--help`: Print help (see a summary with `-h`)
     - `-V`, `--version`: Print version
 
