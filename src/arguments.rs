@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License along with rs. If not,
 // see <https://www.gnu.org/licenses/>.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use getargs::{Opt, Options};
+use getargs::{Arg, Opt, Options};
 
 use crate::sort::{HoistType, SortType};
 
@@ -178,6 +178,10 @@ fn parse_arguments<'arg>(mut options: Options<&'arg str, impl Iterator<Item = &'
             }
             other => return Output::Error(format!("unknown argument: '{other}'")),
         };
+    }
+
+    if let Ok(Some(Arg::Positional(path))) = options.next_arg() {
+        arguments.path = Some(PathBuf::from(path).into_boxed_path());
     }
 
     Output::Arguments(arguments)
