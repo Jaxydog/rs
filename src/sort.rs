@@ -49,11 +49,60 @@ pub enum SortType {
 impl Sorter for SortType {
     fn sort(&self, a: &Entry, b: &Entry) -> Result<Ordering> {
         match self {
-            Self::Name => Name.sort(a, b),
-            Self::Size => Size.sort(a, b),
-            Self::Created => Created.sort(a, b),
-            Self::Modified => Modified.sort(a, b),
+            Self::Name => SortName.sort(a, b),
+            Self::Size => SortSize.sort(a, b),
+            Self::Created => SortCreated.sort(a, b),
+            Self::Modified => SortModified.sort(a, b),
         }
+    }
+}
+
+/// Sort by name.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct SortName;
+
+impl Sorter for SortName {
+    fn sort(&self, a: &Entry, b: &Entry) -> Result<Ordering> {
+        let a_path = a.path.as_os_str().to_ascii_lowercase();
+        let b_path = b.path.as_os_str().to_ascii_lowercase();
+
+        Ok(a_path.cmp(&b_path))
+    }
+}
+
+/// Sort by size.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct SortSize;
+
+impl Sorter for SortSize {
+    fn sort(&self, a: &Entry, b: &Entry) -> Result<Ordering> {
+        Ok(a.data.len().cmp(&b.data.len()).reverse())
+    }
+}
+
+/// Sort by creation date.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct SortCreated;
+
+impl Sorter for SortCreated {
+    fn sort(&self, a: &Entry, b: &Entry) -> Result<Ordering> {
+        let a_time = a.data.created()?;
+        let b_time = b.data.created()?;
+
+        Ok(a_time.cmp(&b_time).reverse())
+    }
+}
+
+/// Sort by last modified.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct SortModified;
+
+impl Sorter for SortModified {
+    fn sort(&self, a: &Entry, b: &Entry) -> Result<Ordering> {
+        let a_time = a.data.modified()?;
+        let b_time = b.data.modified()?;
+
+        Ok(a_time.cmp(&b_time).reverse())
     }
 }
 
@@ -76,55 +125,6 @@ impl Sorter for HoistType {
             Self::Directories => HoistDirectories.sort(a, b),
             Self::Hidden => HoistHidden.sort(a, b),
         }
-    }
-}
-
-/// Sort by name.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct Name;
-
-impl Sorter for Name {
-    fn sort(&self, a: &Entry, b: &Entry) -> Result<Ordering> {
-        let a_path = a.path.as_os_str().to_ascii_lowercase();
-        let b_path = b.path.as_os_str().to_ascii_lowercase();
-
-        Ok(a_path.cmp(&b_path))
-    }
-}
-
-/// Sort by size.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct Size;
-
-impl Sorter for Size {
-    fn sort(&self, a: &Entry, b: &Entry) -> Result<Ordering> {
-        Ok(a.data.len().cmp(&b.data.len()).reverse())
-    }
-}
-
-/// Sort by creation date.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct Created;
-
-impl Sorter for Created {
-    fn sort(&self, a: &Entry, b: &Entry) -> Result<Ordering> {
-        let a_time = a.data.created()?;
-        let b_time = b.data.created()?;
-
-        Ok(a_time.cmp(&b_time).reverse())
-    }
-}
-
-/// Sort by last modified.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct Modified;
-
-impl Sorter for Modified {
-    fn sort(&self, a: &Entry, b: &Entry) -> Result<Ordering> {
-        let a_time = a.data.modified()?;
-        let b_time = b.data.modified()?;
-
-        Ok(a_time.cmp(&b_time).reverse())
     }
 }
 
