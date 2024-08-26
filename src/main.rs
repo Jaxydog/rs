@@ -74,12 +74,21 @@ pub fn main() -> Result<()> {
         arguments.hoist_function = HoistType::Directories;
     }
 
-    #[cfg(debug_assertions)]
-    dbg!(&arguments);
-
-    let path = arguments.path.unwrap_or_else(|| PathBuf::from(".").into_boxed_path());
-
     let mut stdout = std::io::stdout().lock();
+    let mut path = arguments.path.unwrap_or_else(|| PathBuf::from(".").into_boxed_path());
+
+    if !path.try_exists()? {
+        eprintln!("Invalid path '{}'.", path.to_string_lossy());
+
+        return Ok(());
+    }
+    if path.is_symlink() {
+        path = std::fs::read_link(path)?.into_boxed_path();
+    }
+    if path.is_file() {
+        return writeln!(&mut stdout, "'{}' is a file.", path.to_string_lossy());
+    }
+
     let mut entries = std::fs::read_dir(&path)?.map(|v| v.and_then(Entry::try_from)).collect::<Result<Vec<_>>>()?;
 
     if !arguments.show_hidden {
