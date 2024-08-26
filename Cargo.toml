@@ -13,9 +13,11 @@ readme = "README.md"
 repository = "https://github.com/Jaxydog/rs"
 
 [dependencies]
-is_executable = "1.0"
 getargs = "0.5"
+is_executable = "1.0"
+itoa = "1.0"
 owo-colors = { version = "4.0", features = ["supports-colors"] }
+ryu = "1.0"
 time = { version = "0.3", features = ["formatting", "local-offset", "macros"] }
 
 [target.'cfg(unix)'.dependencies]

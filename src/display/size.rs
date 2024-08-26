@@ -52,7 +52,7 @@ impl Size {
         T: Display,
     {
         let output = if self.human_readable {
-            format!("{v:>9}")
+            v.to_string()
         } else {
             let string = v.to_string();
 
@@ -88,11 +88,12 @@ impl Size {
 
             if suffix_bounds.contains(&bytes) {
                 return if index == 0 {
-                    self.show_aligned(f, format_args!("{bytes} {suffix}"), false)
+                    self.show_aligned(f, format_args!("{} {suffix}", itoa::Buffer::new().format(bytes)), false)
                 } else {
                     let value = bytes as f64 / min_bound as f64;
+                    let value = (value * 10.0).round() / 10.0;
 
-                    self.show_aligned(f, format_args!("{value:.1} {suffix}"), false)
+                    self.show_aligned(f, format_args!("{} {suffix}", ryu::Buffer::new().format_finite(value)), false)
                 };
             }
         }
