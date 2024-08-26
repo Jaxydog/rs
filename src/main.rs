@@ -114,14 +114,14 @@ pub fn main() -> Result<()> {
     });
 
     stderr.flush()?;
+    drop(stderr);
 
     let name = NameDisplay::new(arguments.show_symlinks);
-
     let permissions = arguments.show_permissions.then(PermissionsDisplay::new);
     let size = arguments.show_sizes.then(|| SizeDisplay::new(arguments.use_human_sizes));
     let modified = arguments.show_modified.then(|| ModifiedDisplay::new(arguments.use_human_sizes));
 
-    for entry in &entries {
+    for ref entry in entries {
         if let Some(ref displayer) = permissions {
             displayer.show(&mut stdout, entry)?;
             stdout.write_all(b" ")?;
