@@ -56,7 +56,11 @@ impl Name {
             cwrite!(bright_red; f, "{v}")
         }
 
-        cwrite!(bright_cyan; f, "{name}")?;
+        if name.starts_with('.') {
+            cwrite!(cyan; f, "{name}")?;
+        } else {
+            cwrite!(bright_cyan; f, "{name}")?;
+        }
 
         if !self.resolve_symlinks {
             return Ok(());
@@ -92,10 +96,18 @@ impl Name {
     ///
     /// This function will return an error if the entry fails to display.
     fn show_dir<W: Write>(&self, f: &mut W, name: &str) -> Result<()> {
-        cwrite!(bright_blue; f, "{name}")?;
+        if name.starts_with('.') {
+            cwrite!(blue; f, "{name}")?;
 
-        if !name.ends_with(MAIN_SEPARATOR) {
-            cwrite!(bright_blue; f, "{MAIN_SEPARATOR}")?;
+            if !name.ends_with(MAIN_SEPARATOR) {
+                cwrite!(blue; f, "{MAIN_SEPARATOR}")?;
+            }
+        } else {
+            cwrite!(bright_blue; f, "{name}")?;
+
+            if !name.ends_with(MAIN_SEPARATOR) {
+                cwrite!(bright_blue; f, "{MAIN_SEPARATOR}")?;
+            }
         }
 
         Ok(())
@@ -108,13 +120,18 @@ impl Name {
     /// This function will return an error if the entry fails to display.
     fn show_file<W: Write>(&self, f: &mut W, entry: &Entry, name: &str) -> Result<()> {
         if entry.path.is_executable() {
-            cwrite!(bright_green; f, "{name}")?;
-            cwrite!(white; f, "*")?;
-        } else {
-            cwrite!(white; f, "{name}")?;
-        }
+            if entry.path.file_stem().is_some_and(|p| p.to_string_lossy().starts_with('.')) {
+                cwrite!(green; f, "{name}")?;
+            } else {
+                cwrite!(bright_green; f, "{name}")?;
+            }
 
-        Ok(())
+            cwrite!(white; f, "*")
+        } else if entry.path.file_stem().is_some_and(|p| p.to_string_lossy().starts_with('.')) {
+            cwrite!(bright_black; f, "{name}")
+        } else {
+            cwrite!(white; f, "{name}")
+        }
     }
 }
 
