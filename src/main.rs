@@ -75,12 +75,11 @@ pub fn main() -> Result<()> {
     }
 
     let mut stdout = std::io::stdout().lock();
+    let mut stderr = std::io::stderr().lock();
     let mut path = arguments.path.unwrap_or_else(|| PathBuf::from(".").into_boxed_path());
 
     if !path.try_exists()? {
-        eprintln!("Invalid path '{}'.", path.to_string_lossy());
-
-        return Ok(());
+        return writeln!(&mut stderr, "Invalid path '{}'.", path.to_string_lossy());
     }
     if path.is_symlink() {
         path = std::fs::read_link(path)?.into_boxed_path();
@@ -101,18 +100,20 @@ pub fn main() -> Result<()> {
 
     entries.sort_unstable_by(|a, b| {
         let hoisted = arguments.hoist_function.sort(a, b).unwrap_or_else(|error| {
-            eprintln!("failed to hoist - {error}");
+            writeln!(&mut stderr, "Failed to hoist entries: {error}").unwrap();
 
             core::cmp::Ordering::Equal
         });
         let sorted = arguments.sort_function.sort(a, b).unwrap_or_else(|error| {
-            eprintln!("failed to sort - {error}");
+            writeln!(&mut stderr, "Failed to sort entries: {error}").unwrap();
 
             core::cmp::Ordering::Equal
         });
 
         hoisted.then(if arguments.sort_reversed { sorted.reverse() } else { sorted })
     });
+
+    stderr.flush()?;
 
     let name = display::Name::new(arguments.show_symlinks);
     let size = arguments.show_sizes.then(|| display::Size::new(arguments.use_human_sizes));
