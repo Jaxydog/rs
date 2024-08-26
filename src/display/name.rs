@@ -29,7 +29,7 @@ use crate::{cwrite, Entry};
 /// Displays an entry's name.
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Name {
+pub struct NameDisplay {
     /// Whether to resolve symbolic links.
     pub resolve_symlinks: bool,
     /// Whether to trim file paths.
@@ -37,8 +37,8 @@ pub struct Name {
 }
 
 #[allow(clippy::unused_self)]
-impl Name {
-    /// Creates a new [`Name`].
+impl NameDisplay {
+    /// Creates a new [`NameDisplay`].
     #[must_use]
     pub const fn new(resolve_symlinks: bool) -> Self {
         Self { resolve_symlinks, trim_file_paths: true }
@@ -135,7 +135,7 @@ impl Name {
     }
 }
 
-impl Displayer for Name {
+impl Displayer for NameDisplay {
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
         let name = if self.trim_file_paths {
             let os_name = entry.path.file_name().unwrap_or(entry.path.as_os_str());

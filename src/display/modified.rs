@@ -38,20 +38,20 @@ const MACHINE_FORMAT: &[FormatItem] = time::macros::format_description!(
 /// Display's an entry's modification date.
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Modified {
+pub struct ModifiedDisplay {
     /// Whether to use human-readable units.
     pub human_readable: bool,
 }
 
-impl Modified {
-    /// Creates a new [`Modified`].
+impl ModifiedDisplay {
+    /// Creates a new [`ModifiedDisplay`].
     #[must_use]
     pub const fn new(human_readable: bool) -> Self {
         Self { human_readable }
     }
 }
 
-impl Displayer for Modified {
+impl Displayer for ModifiedDisplay {
     fn show<W: Write>(&self, f: &mut W, entry: &crate::Entry) -> Result<()> {
         let time = entry.data.modified()?;
         let mut time = OffsetDateTime::from(time);

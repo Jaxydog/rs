@@ -26,11 +26,11 @@ use crate::{cwrite, Entry};
 /// Displays an entry's permissions.
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Permissions {}
+pub struct PermissionsDisplay {}
 
 #[allow(clippy::unused_self)]
-impl Permissions {
-    /// Creates a new [`Permissions`].
+impl PermissionsDisplay {
+    /// Creates a new [`PermissionsDisplay`].
     #[must_use]
     pub const fn new() -> Self {
         Self {}
@@ -103,7 +103,7 @@ impl Permissions {
     }
 }
 
-impl Displayer for Permissions {
+impl Displayer for PermissionsDisplay {
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
         cwrite!(bright_black; f, "[")?;
 

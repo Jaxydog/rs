@@ -26,16 +26,16 @@ use crate::{cwrite, Entry};
 /// Displays an entry's name.
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Size {
+pub struct SizeDisplay {
     /// Whether to use human-readable units.
     pub human_readable: bool,
 }
 
-impl Size {
+impl SizeDisplay {
     /// All accepted human-readable byte suffixes.
     pub const SUFFIXES: [&'static str; 7] = ["B  ", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
 
-    /// Creates a new [`Size`].
+    /// Creates a new [`SizeDisplay`].
     #[must_use]
     pub const fn new(human_readable: bool) -> Self {
         Self { human_readable }
@@ -102,7 +102,7 @@ impl Size {
     }
 }
 
-impl Displayer for Size {
+impl Displayer for SizeDisplay {
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
         if entry.data.is_dir() {
             return self.show_aligned(f, if self.human_readable { "- -  " } else { "-" }, true);

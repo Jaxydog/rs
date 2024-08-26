@@ -19,10 +19,10 @@ extern crate alloc;
 
 use std::io::Write;
 
-pub use self::modified::Modified;
-pub use self::name::Name;
-pub use self::permissions::Permissions;
-pub use self::size::Size;
+pub use self::modified::ModifiedDisplay;
+pub use self::name::NameDisplay;
+pub use self::permissions::PermissionsDisplay;
+pub use self::size::SizeDisplay;
 use crate::Entry;
 
 /// Defines the modified display.

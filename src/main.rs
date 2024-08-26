@@ -27,7 +27,7 @@ use std::fs::{DirEntry, Metadata};
 use std::io::{Result, Write};
 use std::path::PathBuf;
 
-use display::Displayer;
+use display::{Displayer, ModifiedDisplay, NameDisplay, PermissionsDisplay, SizeDisplay};
 use sort::{HoistType, SortType, Sorter};
 
 /// Defines the application's command-line arguments and handles parsing.
@@ -115,24 +115,25 @@ pub fn main() -> Result<()> {
 
     stderr.flush()?;
 
-    let name = display::Name::new(arguments.show_symlinks);
-    let size = arguments.show_sizes.then(|| display::Size::new(arguments.use_human_sizes));
-    let permissions = arguments.show_permissions.then(display::Permissions::new);
-    let modified = arguments.show_modified.then(|| display::Modified::new(arguments.use_human_sizes));
+    let name = NameDisplay::new(arguments.show_symlinks);
+
+    let permissions = arguments.show_permissions.then(PermissionsDisplay::new);
+    let size = arguments.show_sizes.then(|| SizeDisplay::new(arguments.use_human_sizes));
+    let modified = arguments.show_modified.then(|| ModifiedDisplay::new(arguments.use_human_sizes));
 
     for entry in &entries {
-        if let Some(ref permissions) = permissions {
-            permissions.show(&mut stdout, entry)?;
+        if let Some(ref displayer) = permissions {
+            displayer.show(&mut stdout, entry)?;
             stdout.write_all(b" ")?;
-        }
-        if let Some(ref size) = size {
-            size.show(&mut stdout, entry)?;
+        };
+        if let Some(ref displayer) = size {
+            displayer.show(&mut stdout, entry)?;
             stdout.write_all(b" ")?;
-        }
-        if let Some(ref modified) = modified {
-            modified.show(&mut stdout, entry)?;
+        };
+        if let Some(ref displayer) = modified {
+            displayer.show(&mut stdout, entry)?;
             stdout.write_all(b" ")?;
-        }
+        };
 
         name.show(&mut stdout, entry)?;
         stdout.write_all(b"\n")?;
