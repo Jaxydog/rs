@@ -44,7 +44,7 @@ const HELP: &str = concat!(
 
     -H, --hoist             Group specific entries at the top of the listing.
                             - Default value: none
-                            - Possible options: [none, directories, hidden]
+                            - Possible options: [none, directories, hidden, symlinks]
 
     -U, --human-readable    Display human-readable file sizes."
 );
@@ -169,6 +169,7 @@ fn parse_arguments<'arg>(mut options: Options<&'arg str, impl Iterator<Item = &'
                     Err(_) | Ok("none") => HoistType::None,
                     Ok("directories" | "dirs") => HoistType::Directories,
                     Ok("hidden") => HoistType::Hidden,
+                    Ok("symlinks") => HoistType::Symlinks,
                     Ok(other) => return Output::Error(format!("unknown hoisting type: {other}")),
                 };
             }

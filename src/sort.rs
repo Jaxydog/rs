@@ -116,6 +116,8 @@ pub enum HoistType {
     Directories,
     /// Hoist hidden files.
     Hidden,
+    /// Hoist symbolic links.
+    Symlinks,
 }
 
 impl Sorter for HoistType {
@@ -124,6 +126,7 @@ impl Sorter for HoistType {
             Self::None => Ok(Ordering::Equal),
             Self::Directories => HoistDirectories.sort(a, b),
             Self::Hidden => HoistHidden.sort(a, b),
+            Self::Symlinks => HoistSymlinks.sort(a, b),
         }
     }
 }
@@ -152,6 +155,20 @@ impl Sorter for HoistHidden {
         let Some(b_name) = b.path.file_name() else { return Ok(Ordering::Equal) };
 
         match (a_name.to_string_lossy().starts_with('.'), b_name.to_string_lossy().starts_with('.')) {
+            (true, false) => Ok(Ordering::Less),
+            (false, true) => Ok(Ordering::Greater),
+            _ => Ok(Ordering::Equal),
+        }
+    }
+}
+
+/// Sort symbolic links earlier.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct HoistSymlinks;
+
+impl Sorter for HoistSymlinks {
+    fn sort(&self, a: &Entry, b: &Entry) -> Result<Ordering> {
+        match (a.data.is_symlink(), b.data.is_symlink()) {
             (true, false) => Ok(Ordering::Less),
             (false, true) => Ok(Ordering::Greater),
             _ => Ok(Ordering::Equal),
