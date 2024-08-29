@@ -10,26 +10,32 @@ Not intended to be POSIX-compliant or an otherwise legimately used tool, just a 
 $ rs [OPTIONS] [PATH]
 ```
 Arguments:
-- Path: The path to list (default: `.`)
-- Options:
-    - `-A`, `--all`: Displays hidden entries
-    - `-r`, `--reverse`: Reverses the sorting order
-    - `-s`, `--sort` `<SORT_BY>`:
-    - Sorts entries using the given method (default: `name`). Possible values:
-        - `name`: Sort by name
-        - `size`: Sort by size
-        - `created`: Sort by creation date
-        - `modified`: Sort by last modified
-    - `-H`, `--hoist` `<HOIST_BY>`: Groups entries at the top of the listing by the given type (default: `none`). Possible values:
-        - `none`: Don't hoist anything
-        - `directories`: Hoist directories
-        - `hidden`: Hoist hidden files
-    - `-U`, `--human-readable`: Whether to use human-readable units
-    - `-L`, `--resolve-symlinks`: Resolves symlink paths
-    - `-S`, `--show-sizes`: Displays file sizes
-    - `-M`, `--show-modified`: Displays file modification dates
-    - `-h`, `--help`: Print help (see a summary with `-h`)
-    - `-V`, `--version`: Print version
+- `PATH` - The path to list.
+
+Options:
+- `-h`, `--help` - Displays the command's usage.
+- `-V`, `--version` - Displays the command's version.
+
+- `-A`, `--all` - Display hidden files (excluding `.` and `..`)
+- `-P`, `--show-permissions` - Display entry permissions.
+- `-S`, `--show-sizes` - Display file sizes.
+- `-M`, `--show-modified` - Display entry modification date.
+- `-L`, `--resolve-symlinks` - Display resolved symbolic links.
+
+- `-r`, `--reverse` - Reverse the displayed sorting order.
+- `-s`, `--sort` - Sort displayed entries in the specified order.
+    - `name` (default) - Sort by name, descending alphabetically.
+    - `size` - Sort by size, descending.
+    - `created` - Sort by creation date, descending.
+    - `modified` - Sort by modification date, descending.
+
+- `-H`, `--hoist` - Group specific entries at the top of the listing.
+    - `none` (default) - Do not hoist any entries.
+    - `directories`, `dirs` - Group directories at the top.
+    - `hidden` - Group hidden entries at the top.
+    - `symlinks` - Group symbolic links at the top.
+
+- `-U`, `--human-readable` - Use more human-readable formats.
 
 ### Examples
 
