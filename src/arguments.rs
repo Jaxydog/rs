@@ -28,13 +28,13 @@ const HELP: &str = concat!(
     env!("CARGO_BIN_NAME"),
     " [OPTIONS] [PATH]",
     "\n\nOptions:
-    -h, --help              Display a list of commands.
+    -h, --help              Display this program's usage.
     -V, --version           Display this program's version.
 
-    -A, --all               Display hidden files.
-    -P, --show-permissions  Display file permissions.
+    -A, --all               Display hidden files (excluding . and ..).
+    -P, --show-permissions  Display entry permissions.
     -S, --show-sizes        Display file sizes.
-    -M, --show-modified     Display file modification date.
+    -M, --show-modified     Display entry modification date.
     -L, --resolve-symlinks  Display resolved symbolic links.
 
     -r, --reverse           Reverse the displayed sorting order.
@@ -44,9 +44,9 @@ const HELP: &str = concat!(
 
     -H, --hoist             Group specific entries at the top of the listing.
                             - Default value: none
-                            - Possible options: [none, directories, hidden, symlinks]
+                            - Possible options: [none, directories, dirs, hidden, symlinks]
 
-    -U, --human-readable    Display human-readable file sizes."
+    -U, --human-readable    Use more human-readable formats."
 );
 
 /// The application's command-line arguments.
