@@ -42,8 +42,8 @@ mod size;
 pub trait HasColor {
     /// Whether to display color.
     ///
-    /// This usually will not need to be called directly; it should be preferred to call the [`cwrite!`]
-    /// or [`cwriteln!`] macros instead.
+    /// This usually will not need to be called directly; it should be preferred to call
+    /// the [`cwrite!`](<crate::cwrite>) or [`cwriteln!`](<crate::cwriteln>) macros instead.
     fn has_color(&self) -> Option<bool>;
 }
 
