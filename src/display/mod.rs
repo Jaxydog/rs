@@ -37,6 +37,9 @@ mod size;
 /// A type that displays entries.
 pub trait Displayer {
     /// Whether to display color.
+    ///
+    /// This usually will not need to be called directly; it should be preferred to call the [`cwrite!`]
+    /// or [`cwriteln!`] macros instead.
     fn color(&self) -> Option<bool>;
 
     /// Displays an entry.
@@ -64,8 +67,9 @@ impl<T: Displayer> Displayer for &T {
 /// ```
 /// use crate::display::NameDisplay;
 ///
+/// let arguments = crate::arguments::parse();
 /// let mut stdout = std::io::stdout();
-/// let display = NameDisplay::new(Some(false), true);
+/// let display = NameDisplay::new(&arguments);
 ///
 /// cwrite!(display, red; &mut stdout, "some text!").expect("writing should not fail");
 /// ```
@@ -99,8 +103,9 @@ macro_rules! cwrite {
 /// ```
 /// use crate::display::NameDisplay;
 ///
+/// let arguments = crate::arguments::parse();
 /// let mut stdout = std::io::stdout();
-/// let display = NameDisplay::new(Some(false), true);
+/// let display = NameDisplay::new(&arguments);
 ///
 /// cwriteln!(display, red; &mut stdout, "some text!").expect("writing should not fail");
 /// ```

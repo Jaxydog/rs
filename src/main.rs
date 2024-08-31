@@ -27,6 +27,7 @@ use std::fs::{DirEntry, Metadata};
 use std::io::{Result, StderrLock, StdoutLock, Write};
 use std::path::{Path, PathBuf};
 
+use arguments::Arguments;
 use display::{Displayer, ModifiedDisplay, NameDisplay, PermissionsDisplay, SizeDisplay};
 use sort::{HoistType, SortType, Sorter};
 
@@ -38,6 +39,9 @@ pub mod display;
 pub mod sort;
 
 /// A file system entry.
+///
+/// This is used to provide easy access to file metadata to [`Displayer`] implementations without making additional OS
+/// calls if at all possible.
 #[derive(Clone, Debug)]
 pub struct Entry {
     /// The entry's path.
@@ -67,7 +71,7 @@ impl TryFrom<DirEntry> for Entry {
 /// # Errors
 ///
 /// This function will return an error if the iterator could not be created.
-pub fn iterator(
+pub fn entries_iterator(
     stdout: &mut StdoutLock,
     stderr: &mut StderrLock,
     path: Option<&Path>,
@@ -87,10 +91,92 @@ pub fn iterator(
         return Ok(None);
     }
     if path.is_symlink() {
-        return self::iterator(stdout, stderr, Some(&std::fs::read_link(path)?));
+        return self::entries_iterator(stdout, stderr, Some(&std::fs::read_link(path)?));
     }
 
     std::fs::read_dir(path).map(Some)
+}
+
+/// Returns a list of resolved entries to list.
+///
+/// # Panics
+///
+/// Panics if an error message could not be written to standard error during sorting.
+///
+/// # Errors
+///
+/// This function will return an error if the entries could not be resolved.
+pub fn entries_list(
+    arguments: &Arguments,
+    stdout: &mut StdoutLock,
+    stderr: &mut StderrLock,
+) -> Result<Option<Box<[Entry]>>> {
+    let Some(iterator) = self::entries_iterator(stdout, stderr, arguments.path.as_deref())? else {
+        return Ok(None);
+    };
+
+    let mut entries = iterator.map(|v| v.and_then(Entry::try_from)).collect::<Result<Vec<_>>>()?;
+
+    if !arguments.show_hidden {
+        entries.retain(|entry| {
+            let Some(name) = entry.path.file_name() else { return true };
+
+            !name.to_string_lossy().starts_with('.')
+        });
+    }
+
+    entries.sort_unstable_by(|a, b| {
+        let hoisted = arguments.hoist_function.sort(a, b).unwrap_or_else(|error| {
+            writeln!(stderr, "Failed to hoist entries: {error}").unwrap();
+
+            core::cmp::Ordering::Equal
+        });
+        let sorted = arguments.sort_function.sort(a, b).unwrap_or_else(|error| {
+            writeln!(stderr, "Failed to sort entries: {error}").unwrap();
+
+            core::cmp::Ordering::Equal
+        });
+
+        hoisted.then(if arguments.sort_reversed { sorted.reverse() } else { sorted })
+    });
+
+    Ok(Some(entries.into_boxed_slice()))
+}
+
+/// Displays a list of entries.
+///
+/// # Errors
+///
+/// This function will return an error if the listing fails to display.
+pub fn show(arguments: &Arguments, stdout: &mut StdoutLock, iterator: impl IntoIterator<Item = Entry>) -> Result<()> {
+    let name = NameDisplay::new(arguments);
+    let permissions = arguments.show_permissions.then(|| PermissionsDisplay::new(arguments));
+    let size = arguments.show_sizes.then(|| SizeDisplay::new(arguments));
+    let modified = arguments.show_modified.then(|| ModifiedDisplay::new(arguments));
+
+    for ref entry in iterator {
+        if let Some(ref displayer) = permissions {
+            displayer.show(stdout, entry)?;
+
+            stdout.write_all(b" ")?;
+        };
+        if let Some(ref displayer) = size {
+            displayer.show(stdout, entry)?;
+
+            stdout.write_all(b" ")?;
+        };
+        if let Some(ref displayer) = modified {
+            displayer.show(stdout, entry)?;
+
+            stdout.write_all(b" ")?;
+        };
+
+        name.show(stdout, entry)?;
+
+        stdout.write_all(b"\n")?;
+    }
+
+    Ok(())
 }
 
 /// The program's entrypoint.
@@ -108,60 +194,14 @@ pub fn main() -> Result<()> {
     let mut stdout = std::io::stdout().lock();
     let mut stderr = std::io::stderr().lock();
 
-    let Some(iterator) = self::iterator(&mut stdout, &mut stderr, arguments.path.as_deref())? else {
+    let Some(entries) = self::entries_list(&arguments, &mut stdout, &mut stderr)? else {
         return Ok(());
     };
-
-    let mut entries = iterator.map(|v| v.and_then(Entry::try_from)).collect::<Result<Vec<_>>>()?;
-
-    if !arguments.show_hidden {
-        entries.retain(|entry| {
-            let Some(name) = entry.path.file_name() else { return true };
-
-            !name.to_string_lossy().starts_with('.')
-        });
-    }
-
-    entries.sort_unstable_by(|a, b| {
-        let hoisted = arguments.hoist_function.sort(a, b).unwrap_or_else(|error| {
-            writeln!(&mut stderr, "Failed to hoist entries: {error}").unwrap();
-
-            core::cmp::Ordering::Equal
-        });
-        let sorted = arguments.sort_function.sort(a, b).unwrap_or_else(|error| {
-            writeln!(&mut stderr, "Failed to sort entries: {error}").unwrap();
-
-            core::cmp::Ordering::Equal
-        });
-
-        hoisted.then(if arguments.sort_reversed { sorted.reverse() } else { sorted })
-    });
 
     stderr.flush()?;
     drop(stderr);
 
-    let name = NameDisplay::new(&arguments);
-    let permissions = arguments.show_permissions.then(|| PermissionsDisplay::new(&arguments));
-    let size = arguments.show_sizes.then(|| SizeDisplay::new(&arguments));
-    let modified = arguments.show_modified.then(|| ModifiedDisplay::new(&arguments));
-
-    for ref entry in entries {
-        if let Some(ref displayer) = permissions {
-            displayer.show(&mut stdout, entry)?;
-            stdout.write_all(b" ")?;
-        };
-        if let Some(ref displayer) = size {
-            displayer.show(&mut stdout, entry)?;
-            stdout.write_all(b" ")?;
-        };
-        if let Some(ref displayer) = modified {
-            displayer.show(&mut stdout, entry)?;
-            stdout.write_all(b" ")?;
-        };
-
-        name.show(&mut stdout, entry)?;
-        stdout.write_all(b"\n")?;
-    }
+    self::show(&arguments, &mut stdout, entries)?;
 
     stdout.flush()
 }
