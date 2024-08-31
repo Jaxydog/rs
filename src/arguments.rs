@@ -197,48 +197,47 @@ fn parse_arguments<'arg>(mut options: Options<&'arg str, impl Iterator<Item = &'
 /// This function will return an error if the display could not be printed.
 fn print_help(arguments: &Arguments, error: bool) -> Result<()> {
     macro_rules! option {
-        ($short:expr, $long:literal, $desc:literal, $default:literal, $($value:literal),* $(,)?) => {
-            Some(($short, $long, $desc, Some(($default, &[$default, $($value),*]))))
+        ($short:literal, $long:literal, $desc:literal, [$default:literal, $($value:literal),* $(,)?]) => {
+            Some((Some($short), $long, $desc, Some(($default, &[$default, $($value),*]))))
         };
-        ($short:expr, $long:literal, $desc:literal $(,)?) => {
-            Some(($short, $long, $desc, None))
+        ($short:literal, $long:literal, $desc:literal $(,)?) => {
+            Some((Some($short), $long, $desc, None))
+        };
+        ($long:literal, $desc:literal, [$default:literal, $($value:literal),* $(,)?]) => {
+            Some((None, $long, $desc, Some(($default, &[$default, $($value),*]))))
+        };
+        ($long:literal, $desc:literal $(,)?) => {
+            Some((None, $long, $desc, None))
         };
     }
 
     const OPTIONS: &[Option<HelpOption<'static>>] = &[
-        option!(Some('h'), "help", "Displays this program's usage."),
-        option!(Some('V'), "version", "Displays this program's version."),
+        option!('h', "help", "Displays this program's usage."),
+        option!('V', "version", "Displays this program's version."),
         None,
-        option!(Some('A'), "all", "Display hidden files (excluding . and ..)."),
-        option!(Some('P'), "show-permissions", "Display entry permissions."),
-        option!(Some('S'), "show-sizes", "Display file sizes."),
-        option!(Some('M'), "show-modified", "Display entry modification date."),
-        option!(Some('L'), "resolve-symlinks", "Display resolved symbolic links."),
+        option!('A', "all", "Display hidden files (excluding . and ..)."),
+        option!('P', "show-permissions", "Display entry permissions."),
+        option!('S', "show-sizes", "Display file sizes."),
+        option!('M', "show-modified", "Display entry modification date."),
+        option!('L', "resolve-symlinks", "Display resolved symbolic links."),
         None,
-        option!(Some('r'), "reverse", "Reverse the displayed sorting order."),
+        option!('r', "reverse", "Reverse the displayed sorting order."),
         option!(
-            Some('s'),
+            's',
             "sort",
             "Sort displayed entries in the specified order.",
-            "name",
-            "size",
-            "created",
-            "modified"
+            ["name", "size", "created", "modified"]
         ),
         None,
         option!(
-            Some('H'),
+            'H',
             "hoist",
             "Group specific entries at the top of the listing.",
-            "none",
-            "directories",
-            "dirs",
-            "hidden",
-            "symlinks"
+            ["none", "directories", "dirs", "hidden", "symlinks"]
         ),
         None,
-        option!(Some('c'), "color", "Set whether to use color in the program's output.", "auto", "always", "never"),
-        option!(Some('U'), "human-readable", "Use more human-readable formats."),
+        option!('c', "color", "Set whether to use color in the program's output.", ["auto", "always", "never"]),
+        option!('U', "human-readable", "Use more human-readable formats."),
     ];
 
     if error {
