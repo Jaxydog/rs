@@ -19,12 +19,15 @@ extern crate alloc;
 
 use std::io::Write;
 
+pub use self::header::HeaderDisplay;
 pub use self::modified::ModifiedDisplay;
 pub use self::name::NameDisplay;
 pub use self::permissions::PermissionsDisplay;
 pub use self::size::SizeDisplay;
 use crate::Entry;
 
+/// Defines the header display.
+mod header;
 /// Defines the modified display.
 mod modified;
 /// Defines the name display.

@@ -26,7 +26,7 @@ const HELP: &str = concat!(
     env!("CARGO_PKG_DESCRIPTION"),
     "\n\nUsage: ",
     env!("CARGO_BIN_NAME"),
-    " [OPTIONS] [PATH]",
+    " [OPTIONS] [PATH...]",
     "\n\nOptions:
     -h, --help              Display this program's usage.
     -V, --version           Display this program's version.
@@ -57,8 +57,8 @@ const HELP: &str = concat!(
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Arguments {
-    /// The directory to list.
-    pub path: Option<Box<Path>>,
+    /// The directories to list.
+    pub paths: Box<[Box<Path>]>,
 
     /// Whether to display hidden entries.
     pub show_hidden: bool,
@@ -193,9 +193,13 @@ fn parse_arguments<'arg>(mut options: Options<&'arg str, impl Iterator<Item = &'
         };
     }
 
-    if let Ok(Some(Arg::Positional(path))) = options.next_arg() {
-        arguments.path = Some(PathBuf::from(path).into_boxed_path());
+    let mut paths = Vec::with_capacity(1);
+
+    while let Ok(Some(Arg::Positional(path))) = options.next_arg() {
+        paths.push(PathBuf::from(path).into_boxed_path());
     }
+
+    arguments.paths = paths.into_boxed_slice();
 
     Output::Arguments(arguments)
 }
