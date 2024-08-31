@@ -197,38 +197,49 @@ fn parse_arguments<'arg>(mut options: Options<&'arg str, impl Iterator<Item = &'
 ///
 /// This function will return an error if the display could not be printed.
 fn print_help(arguments: &Arguments, error: bool) -> Result<()> {
+    macro_rules! option {
+        ($short:expr, $long:literal, $desc:literal, $default:literal, $($value:literal),* $(,)?) => {
+            Some(($short, $long, $desc, Some(($default, &[$default, $($value),*]))))
+        };
+        ($short:expr, $long:literal, $desc:literal $(,)?) => {
+            Some(($short, $long, $desc, None))
+        };
+    }
+
     const OPTIONS: &[Option<HelpOption<'static>>] = &[
-        Some((Some('h'), "help", "Displays this program's usage.", None)),
-        Some((Some('V'), "version", "Displays this program's version.", None)),
+        option!(Some('h'), "help", "Displays this program's usage."),
+        option!(Some('V'), "version", "Displays this program's version."),
         None,
-        Some((Some('A'), "all", "Display hidden files (excluding . and ..).", None)),
-        Some((Some('P'), "show-permissions", "Display entry permissions.", None)),
-        Some((Some('S'), "show-sizes", "Display file sizes.", None)),
-        Some((Some('M'), "show-modified", "Display entry modification date.", None)),
-        Some((Some('L'), "resolve-symlinks", "Display resolved symbolic links.", None)),
+        option!(Some('A'), "all", "Display hidden files (excluding . and ..)."),
+        option!(Some('P'), "show-permissions", "Display entry permissions."),
+        option!(Some('S'), "show-sizes", "Display file sizes."),
+        option!(Some('M'), "show-modified", "Display entry modification date."),
+        option!(Some('L'), "resolve-symlinks", "Display resolved symbolic links."),
         None,
-        Some((Some('r'), "reverse", "Reverse the displayed sorting order.", None)),
-        Some((
+        option!(Some('r'), "reverse", "Reverse the displayed sorting order."),
+        option!(
             Some('s'),
             "sort",
             "Sort displayed entries in the specified order.",
-            Some(("name", &["name", "size", "created", "modified"])),
-        )),
+            "name",
+            "size",
+            "created",
+            "modified"
+        ),
         None,
-        Some((
+        option!(
             Some('H'),
             "hoist",
             "Group specific entries at the top of the listing.",
-            Some(("none", &["none", "directories", "dirs", "hidden", "symlinks"])),
-        )),
+            "none",
+            "directories",
+            "dirs",
+            "hidden",
+            "symlinks"
+        ),
         None,
-        Some((
-            Some('c'),
-            "color",
-            "Set whether to use color in the program's output.",
-            Some(("auto", &["auto", "always", "never"])),
-        )),
-        Some((Some('U'), "human-readable", "Use more human-readable formats.", None)),
+        option!(Some('c'), "color", "Set whether to use color in the program's output.", "auto", "always", "never"),
+        option!(Some('U'), "human-readable", "Use more human-readable formats."),
     ];
 
     if error {
