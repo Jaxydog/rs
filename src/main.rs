@@ -71,7 +71,7 @@ impl TryFrom<DirEntry> for Entry {
 /// # Errors
 ///
 /// This function will return an error if the iterator could not be created.
-pub fn entries_iterator(
+fn entries_iterator(
     stdout: &mut StdoutLock,
     stderr: &mut StderrLock,
     path: impl AsRef<Path>,
