@@ -24,26 +24,25 @@ use std::path::MAIN_SEPARATOR;
 use is_executable::IsExecutable;
 
 use super::Displayer;
+use crate::arguments::Arguments;
 use crate::{cwrite, Entry};
 
 /// Displays an entry's name.
 #[non_exhaustive]
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct NameDisplay {
-    /// Whether to display with color.
-    color: Option<bool>,
-    /// Whether to resolve symbolic links.
-    resolve_symlinks: bool,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NameDisplay<'ar> {
+    /// The program's arguments.
+    arguments: &'ar Arguments,
     /// Whether to trim file paths.
     trim_file_paths: bool,
 }
 
 #[allow(clippy::unused_self)]
-impl NameDisplay {
+impl<'ar> NameDisplay<'ar> {
     /// Creates a new [`NameDisplay`].
     #[must_use]
-    pub const fn new(color: Option<bool>, resolve_symlinks: bool) -> Self {
-        Self { color, resolve_symlinks, trim_file_paths: true }
+    pub const fn new(arguments: &'ar Arguments) -> Self {
+        Self { arguments, trim_file_paths: true }
     }
 
     /// Displays a symlink file name within the given writer.
@@ -64,7 +63,7 @@ impl NameDisplay {
             cwrite!(self, bright_cyan; f, "{name}")?;
         }
 
-        if !self.resolve_symlinks {
+        if !self.arguments.show_symlinks {
             return Ok(());
         }
 
@@ -137,9 +136,9 @@ impl NameDisplay {
     }
 }
 
-impl Displayer for NameDisplay {
+impl Displayer for NameDisplay<'_> {
     fn color(&self) -> Option<bool> {
-        self.color
+        self.arguments.color
     }
 
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {

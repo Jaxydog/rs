@@ -21,26 +21,24 @@ use core::fmt::Display;
 use std::io::{Result, Write};
 
 use super::Displayer;
-use crate::{cwrite, Entry};
+use crate::{arguments::Arguments, cwrite, Entry};
 
 /// Displays an entry's name.
 #[non_exhaustive]
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct SizeDisplay {
-    /// Whether to display with color.
-    color: Option<bool>,
-    /// Whether to use human-readable units.
-    human_readable: bool,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SizeDisplay<'ar> {
+    /// The program's arguments.
+    arguments: &'ar Arguments,
 }
 
-impl SizeDisplay {
+impl<'ar> SizeDisplay<'ar> {
     /// All accepted human-readable byte suffixes.
     pub const SUFFIXES: [&'static str; 7] = ["B  ", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
 
     /// Creates a new [`SizeDisplay`].
     #[must_use]
-    pub const fn new(color: Option<bool>, human_readable: bool) -> Self {
-        Self { color, human_readable }
+    pub const fn new(arguments: &'ar Arguments) -> Self {
+        Self { arguments }
     }
 
     /// Displays the given value, aligned to the right and capped at 9 characters.
@@ -53,7 +51,7 @@ impl SizeDisplay {
         W: Write,
         T: Display,
     {
-        let output = if self.human_readable {
+        let output = if self.arguments.human_readable {
             v.to_string()
         } else {
             let string = v.to_string();
@@ -104,19 +102,19 @@ impl SizeDisplay {
     }
 }
 
-impl Displayer for SizeDisplay {
+impl Displayer for SizeDisplay<'_> {
     fn color(&self) -> Option<bool> {
-        self.color
+        self.arguments.color
     }
 
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
         if entry.data.is_dir() {
-            return self.show_aligned(f, if self.human_readable { "- -  " } else { "-" }, true);
+            return self.show_aligned(f, if self.arguments.human_readable { "- -  " } else { "-" }, true);
         }
 
         let bytes = entry.data.len();
 
-        if self.human_readable {
+        if self.arguments.human_readable {
             self.show_human_readable(f, bytes)
         } else {
             self.show_aligned(f, bytes, false)

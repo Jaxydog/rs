@@ -76,7 +76,7 @@ pub fn main() -> Result<()> {
 
     let mut stdout = std::io::stdout().lock();
     let mut stderr = std::io::stderr().lock();
-    let mut path = arguments.path.unwrap_or_else(|| PathBuf::from(".").into_boxed_path());
+    let mut path = arguments.path.clone().unwrap_or_else(|| PathBuf::from(".").into_boxed_path());
 
     if !path.try_exists()? {
         return writeln!(&mut stderr, "Invalid path '{}'.", path.to_string_lossy());
@@ -116,10 +116,10 @@ pub fn main() -> Result<()> {
     stderr.flush()?;
     drop(stderr);
 
-    let name = NameDisplay::new(arguments.color, arguments.show_symlinks);
-    let permissions = arguments.show_permissions.then(|| PermissionsDisplay::new(arguments.color));
-    let size = arguments.show_sizes.then(|| SizeDisplay::new(arguments.color, arguments.use_human_sizes));
-    let modified = arguments.show_modified.then(|| ModifiedDisplay::new(arguments.color, arguments.use_human_sizes));
+    let name = NameDisplay::new(&arguments);
+    let permissions = arguments.show_permissions.then(|| PermissionsDisplay::new(&arguments));
+    let size = arguments.show_sizes.then(|| SizeDisplay::new(&arguments));
+    let modified = arguments.show_modified.then(|| ModifiedDisplay::new(&arguments));
 
     for ref entry in entries {
         if let Some(ref displayer) = permissions {

@@ -55,7 +55,7 @@ const HELP: &str = concat!(
 /// The application's command-line arguments.
 #[allow(clippy::struct_excessive_bools)]
 #[non_exhaustive]
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Arguments {
     /// The directory to list.
     pub path: Option<Box<Path>>,
@@ -82,7 +82,7 @@ pub struct Arguments {
     /// Whether to use color in the program's output.
     pub color: Option<bool>,
     /// Whether to use human-readable sizes.
-    pub use_human_sizes: bool,
+    pub human_readable: bool,
 }
 
 /// The output of parsing arguments.
@@ -187,7 +187,7 @@ fn parse_arguments<'arg>(mut options: Options<&'arg str, impl Iterator<Item = &'
                 }
             }
             Opt::Long("human-readable") | Opt::Short('U') => {
-                arguments.use_human_sizes = true;
+                arguments.human_readable = true;
             }
             other => return Output::Error(format!("unknown argument: '{other}'")),
         };

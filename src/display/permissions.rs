@@ -21,22 +21,23 @@ use std::fs::Metadata;
 use std::io::{Result, Write};
 
 use super::Displayer;
+use crate::arguments::Arguments;
 use crate::{cwrite, Entry};
 
 /// Displays an entry's permissions.
 #[non_exhaustive]
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct PermissionsDisplay {
-    /// Whether to display with color.
-    color: Option<bool>,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PermissionsDisplay<'ar> {
+    /// The program's arguments.
+    arguments: &'ar Arguments,
 }
 
 #[allow(clippy::unused_self)]
-impl PermissionsDisplay {
+impl<'ar> PermissionsDisplay<'ar> {
     /// Creates a new [`PermissionsDisplay`].
     #[must_use]
-    pub const fn new(color: Option<bool>) -> Self {
-        Self { color }
+    pub const fn new(arguments: &'ar Arguments) -> Self {
+        Self { arguments }
     }
 
     /// Displays an entry's Unix permissions.
@@ -106,9 +107,9 @@ impl PermissionsDisplay {
     }
 }
 
-impl Displayer for PermissionsDisplay {
+impl Displayer for PermissionsDisplay<'_> {
     fn color(&self) -> Option<bool> {
-        self.color
+        self.arguments.color
     }
 
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {

@@ -20,6 +20,7 @@ use std::io::{Result, Write};
 use time::format_description::FormatItem;
 use time::{OffsetDateTime, UtcOffset};
 
+use crate::arguments::Arguments;
 use crate::cwrite;
 
 use super::Displayer;
@@ -37,25 +38,23 @@ const MACHINE_FORMAT: &[FormatItem] = time::macros::format_description!(
 
 /// Display's an entry's modification date.
 #[non_exhaustive]
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct ModifiedDisplay {
-    /// Whether to display with color.
-    color: Option<bool>,
-    /// Whether to use human-readable units.
-    human_readable: bool,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ModifiedDisplay<'ar> {
+    /// The program's arguments.
+    arguments: &'ar Arguments,
 }
 
-impl ModifiedDisplay {
+impl<'ar> ModifiedDisplay<'ar> {
     /// Creates a new [`ModifiedDisplay`].
     #[must_use]
-    pub const fn new(color: Option<bool>, human_readable: bool) -> Self {
-        Self { color, human_readable }
+    pub const fn new(arguments: &'ar Arguments) -> Self {
+        Self { arguments }
     }
 }
 
-impl Displayer for ModifiedDisplay {
+impl Displayer for ModifiedDisplay<'_> {
     fn color(&self) -> Option<bool> {
-        self.color
+        self.arguments.color
     }
 
     fn show<W: Write>(&self, f: &mut W, entry: &crate::Entry) -> Result<()> {
@@ -66,7 +65,7 @@ impl Displayer for ModifiedDisplay {
             time = time.to_offset(offset);
         }
 
-        let format = if self.human_readable { HUMAN_FORMAT } else { MACHINE_FORMAT };
+        let format = if self.arguments.human_readable { HUMAN_FORMAT } else { MACHINE_FORMAT };
 
         cwrite!(self, bright_blue; f, "{}", time.format(format).expect("the compiled format is incorrectly defined"))
     }
