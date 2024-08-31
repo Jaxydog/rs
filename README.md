@@ -7,10 +7,10 @@ Not intended to be POSIX-compliant or an otherwise legimately used tool, just a 
 ## Usage
 
 ```
-$ rs [OPTIONS] [PATH]
+$ rs [OPTIONS] [PATH...]
 ```
 Arguments:
-- `PATH` - The path to list.
+- `PATH` - The path(s) to list.
 
 Options:
 - `-h`, `--help` - Displays the command's usage.
