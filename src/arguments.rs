@@ -294,14 +294,18 @@ where
 
         f.write_all(&b" ".repeat(spacing))?;
 
-        cwriteln!(arguments, italic; f, "{description}")?;
+        writeln!(f, "{description}")?;
 
         if let Some((default, values)) = values {
             f.write_all(&b" ".repeat(FULL_SPACING))?;
 
             cwrite!(arguments, bright_black; f, "-")?;
 
-            f.write_all(b" Default value: ")?;
+            f.write_all(b" ")?;
+
+            cwrite!(arguments, italic; f, "Default value:")?;
+
+            f.write_all(b" ")?;
 
             cwriteln!(arguments, bold; f, "{default}")?;
 
@@ -313,7 +317,11 @@ where
 
             cwrite!(arguments, bright_black; f, "-")?;
 
-            f.write_all(b" Possible values: ")?;
+            f.write_all(b" ")?;
+
+            cwrite!(arguments, italic; f, "Possible values:")?;
+
+            f.write_all(b" ")?;
 
             for (index, value) in values.iter().enumerate() {
                 cwrite!(arguments, bold; f, "{value}")?;
