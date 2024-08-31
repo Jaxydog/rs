@@ -30,18 +30,20 @@ use crate::{cwrite, Entry};
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct NameDisplay {
+    /// Whether to display with color.
+    color: Option<bool>,
     /// Whether to resolve symbolic links.
-    pub resolve_symlinks: bool,
+    resolve_symlinks: bool,
     /// Whether to trim file paths.
-    pub trim_file_paths: bool,
+    trim_file_paths: bool,
 }
 
 #[allow(clippy::unused_self)]
 impl NameDisplay {
     /// Creates a new [`NameDisplay`].
     #[must_use]
-    pub const fn new(resolve_symlinks: bool) -> Self {
-        Self { resolve_symlinks, trim_file_paths: true }
+    pub const fn new(color: Option<bool>, resolve_symlinks: bool) -> Self {
+        Self { color, resolve_symlinks, trim_file_paths: true }
     }
 
     /// Displays a symlink file name within the given writer.
@@ -51,15 +53,15 @@ impl NameDisplay {
     /// This function will return an error if the entry fails to display.
     fn show_symlink<W: Write>(&self, f: &mut W, entry: &Entry, name: &str) -> Result<()> {
         #[inline]
-        fn fail<W: Write, D: Display>(f: &mut W, v: D) -> Result<()> {
-            cwrite!(bright_black; f, " ~> ")?;
-            cwrite!(bright_red; f, "{v}")
+        fn fail<W: Write, D: Display>(s: &NameDisplay, f: &mut W, v: D) -> Result<()> {
+            cwrite!(s, bright_black; f, " ~> ")?;
+            cwrite!(s, bright_red; f, "{v}")
         }
 
         if name.starts_with('.') {
-            cwrite!(cyan; f, "{name}")?;
+            cwrite!(self, cyan; f, "{name}")?;
         } else {
-            cwrite!(bright_cyan; f, "{name}")?;
+            cwrite!(self, bright_cyan; f, "{name}")?;
         }
 
         if !self.resolve_symlinks {
@@ -67,20 +69,20 @@ impl NameDisplay {
         }
 
         let Ok(path) = std::fs::read_link(&entry.path) else {
-            return fail(f, "N/A");
+            return fail(self, f, "N/A");
         };
 
         let resolve_path = entry.path.parent().map_or_else(|| path.clone(), |p| p.join(&path));
 
         if !resolve_path.try_exists().is_ok_and(core::convert::identity) {
-            return fail(f, path.to_string_lossy());
+            return fail(self, f, path.to_string_lossy());
         }
 
         let Ok(data) = std::fs::metadata(&resolve_path) else {
-            return fail(f, path.to_string_lossy());
+            return fail(self, f, path.to_string_lossy());
         };
 
-        cwrite!(bright_black; f, " -> ")?;
+        cwrite!(self, bright_black; f, " -> ")?;
 
         let mut copy = self.clone();
 
@@ -97,16 +99,16 @@ impl NameDisplay {
     /// This function will return an error if the entry fails to display.
     fn show_dir<W: Write>(&self, f: &mut W, name: &str) -> Result<()> {
         if name.starts_with('.') {
-            cwrite!(blue; f, "{name}")?;
+            cwrite!(self, blue; f, "{name}")?;
 
             if !name.ends_with(MAIN_SEPARATOR) {
-                cwrite!(blue; f, "{MAIN_SEPARATOR}")?;
+                cwrite!(self, blue; f, "{MAIN_SEPARATOR}")?;
             }
         } else {
-            cwrite!(bright_blue; f, "{name}")?;
+            cwrite!(self, bright_blue; f, "{name}")?;
 
             if !name.ends_with(MAIN_SEPARATOR) {
-                cwrite!(bright_blue; f, "{MAIN_SEPARATOR}")?;
+                cwrite!(self, bright_blue; f, "{MAIN_SEPARATOR}")?;
             }
         }
 
@@ -121,21 +123,25 @@ impl NameDisplay {
     fn show_file<W: Write>(&self, f: &mut W, entry: &Entry, name: &str) -> Result<()> {
         if entry.path.is_executable() {
             if entry.path.file_stem().is_some_and(|p| p.to_string_lossy().starts_with('.')) {
-                cwrite!(green; f, "{name}")?;
+                cwrite!(self, green; f, "{name}")?;
             } else {
-                cwrite!(bright_green; f, "{name}")?;
+                cwrite!(self, bright_green; f, "{name}")?;
             }
 
-            cwrite!(white; f, "*")
+            cwrite!(self, white; f, "*")
         } else if entry.path.file_stem().is_some_and(|p| p.to_string_lossy().starts_with('.')) {
-            cwrite!(bright_black; f, "{name}")
+            cwrite!(self, bright_black; f, "{name}")
         } else {
-            cwrite!(white; f, "{name}")
+            cwrite!(self, white; f, "{name}")
         }
     }
 }
 
 impl Displayer for NameDisplay {
+    fn color(&self) -> Option<bool> {
+        self.color
+    }
+
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
         let name = if self.trim_file_paths {
             let os_name = entry.path.file_name().unwrap_or(entry.path.as_os_str());

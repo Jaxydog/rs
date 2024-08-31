@@ -39,19 +39,25 @@ const MACHINE_FORMAT: &[FormatItem] = time::macros::format_description!(
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ModifiedDisplay {
+    /// Whether to display with color.
+    color: Option<bool>,
     /// Whether to use human-readable units.
-    pub human_readable: bool,
+    human_readable: bool,
 }
 
 impl ModifiedDisplay {
     /// Creates a new [`ModifiedDisplay`].
     #[must_use]
-    pub const fn new(human_readable: bool) -> Self {
-        Self { human_readable }
+    pub const fn new(color: Option<bool>, human_readable: bool) -> Self {
+        Self { color, human_readable }
     }
 }
 
 impl Displayer for ModifiedDisplay {
+    fn color(&self) -> Option<bool> {
+        self.color
+    }
+
     fn show<W: Write>(&self, f: &mut W, entry: &crate::Entry) -> Result<()> {
         let time = entry.data.modified()?;
         let mut time = OffsetDateTime::from(time);
@@ -62,6 +68,6 @@ impl Displayer for ModifiedDisplay {
 
         let format = if self.human_readable { HUMAN_FORMAT } else { MACHINE_FORMAT };
 
-        cwrite!(bright_blue; f, "{}", time.format(format).expect("the compiled format is incorrectly defined"))
+        cwrite!(self, bright_blue; f, "{}", time.format(format).expect("the compiled format is incorrectly defined"))
     }
 }

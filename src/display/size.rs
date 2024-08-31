@@ -27,8 +27,10 @@ use crate::{cwrite, Entry};
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct SizeDisplay {
+    /// Whether to display with color.
+    color: Option<bool>,
     /// Whether to use human-readable units.
-    pub human_readable: bool,
+    human_readable: bool,
 }
 
 impl SizeDisplay {
@@ -37,8 +39,8 @@ impl SizeDisplay {
 
     /// Creates a new [`SizeDisplay`].
     #[must_use]
-    pub const fn new(human_readable: bool) -> Self {
-        Self { human_readable }
+    pub const fn new(color: Option<bool>, human_readable: bool) -> Self {
+        Self { color, human_readable }
     }
 
     /// Displays the given value, aligned to the right and capped at 9 characters.
@@ -64,9 +66,9 @@ impl SizeDisplay {
         };
 
         if dim {
-            cwrite!(bright_black; f, "{output:>9}")
+            cwrite!(self, bright_black; f, "{output:>9}")
         } else {
-            cwrite!(bright_green; f, "{output:>9}")
+            cwrite!(self, bright_green; f, "{output:>9}")
         }
     }
 
@@ -103,6 +105,10 @@ impl SizeDisplay {
 }
 
 impl Displayer for SizeDisplay {
+    fn color(&self) -> Option<bool> {
+        self.color
+    }
+
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
         if entry.data.is_dir() {
             return self.show_aligned(f, if self.human_readable { "- -  " } else { "-" }, true);

@@ -36,6 +36,9 @@ mod size;
 
 /// A type that displays entries.
 pub trait Displayer {
+    /// Whether to display color.
+    fn color(&self) -> Option<bool>;
+
     /// Displays an entry.
     ///
     /// # Errors
@@ -44,46 +47,82 @@ pub trait Displayer {
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> std::io::Result<()>;
 }
 
-/// Applies a color to the given displayable value.
-///
-/// # Examples
-///
-/// ```
-/// let string = color!(red; "This is red now!");
-/// ```
-#[macro_export]
-macro_rules! color {
-    ($color:ident; $display:expr) => {
-        <_ as ::owo_colors::OwoColorize>::if_supports_color(&$display, ::owo_colors::Stream::Stdout, |v| {
-            <_ as ::owo_colors::OwoColorize>::$color(v)
-        })
-    };
+impl<T: Displayer> Displayer for &T {
+    fn color(&self) -> Option<bool> {
+        <T as Displayer>::color(self)
+    }
+
+    fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> std::io::Result<()> {
+        <T as Displayer>::show(self, f, entry)
+    }
 }
 
-/// Writes to the given implementer of [`Write`] in the given color.
+/// Writes a format string to the given buffer, optionally using color.
 ///
 /// # Examples
 ///
 /// ```
-/// cwrite!(red; f, "This is red now!")?;
+/// use crate::display::NameDisplay;
+///
+/// let mut stdout = std::io::stdout();
+/// let display = NameDisplay::new(Some(false), true);
+///
+/// cwrite!(display, red; &mut stdout, "some text!").expect("writing should not fail");
 /// ```
 #[macro_export]
 macro_rules! cwrite {
-    ($color:ident; $writer:expr, $($args:tt)+) => {
-        ::core::write!($writer, "{}", $crate::color!($color; ::core::format_args!($($args)+)))
+    ($self:expr, $color:ident; $write:expr, $($body:tt)*) => {
+        match <_ as $crate::display::Displayer>::color(&$self) {
+            ::core::option::Option::Some(false) => ::core::write!($write, $($body)*),
+            ::core::option::Option::Some(true) => ::core::write!(
+                $write,
+                "{}",
+                <_ as ::owo_colors::OwoColorize>::$color(&::core::format_args!($($body)*))
+            ),
+            ::core::option::Option::None => ::core::write!(
+                $write,
+                "{}",
+                <_ as ::owo_colors::OwoColorize>::if_supports_color(
+                    &::core::format_args!($($body)*),
+                    ::owo_colors::Stream::Stdout,
+                    |v| <_ as ::owo_colors::OwoColorize>::$color(v)
+                )
+            ),
+        }
     };
 }
 
-/// Writes to the given implementer of [`Write`] in the given color and appends a newline.
+/// Writes a format string to the given buffer, optionally using color, and appends a newline.
 ///
 /// # Examples
 ///
 /// ```
-/// cwriteln!(red; f, "This is red now!")?;
+/// use crate::display::NameDisplay;
+///
+/// let mut stdout = std::io::stdout();
+/// let display = NameDisplay::new(Some(false), true);
+///
+/// cwriteln!(display, red; &mut stdout, "some text!").expect("writing should not fail");
 /// ```
 #[macro_export]
 macro_rules! cwriteln {
-    ($color:ident; $writer:expr, $($args:tt)+) => {
-        ::core::writeln!($writer, "{}", $crate::color!($color; ::core::format_args!($($args)+)))
+    ($self:expr, $color:ident; $write:expr, $($body:tt)*) => {
+        match <_ as $crate::display::Displayer>::color(&$self) {
+            ::core::option::Option::Some(false) => ::core::writeln!($write, $($body)*),
+            ::core::option::Option::Some(true) => ::core::writeln!(
+                $write,
+                "{}",
+                <_ as ::owo_colors::OwoColorize>::$color(::core::format_args!($($body)*))
+            ),
+            ::core::option::Option::None => ::core::writeln!(
+                $write,
+                "{}",
+                <_ as ::owo_colors::OwoColorize>::if_supports_color(
+                    ::core::format_args!($($body)*),
+                    ::owo_colors::Stream::Stdout,
+                    |v| <_ as ::owo_colors::OwoColorize>::$color(v)
+                )
+            ),
+        }
     };
 }

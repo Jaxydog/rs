@@ -46,6 +46,9 @@ const HELP: &str = concat!(
                             - Default value: none
                             - Possible options: [none, directories, dirs, hidden, symlinks]
 
+    -c, --color             Whether to use color in the program's output.
+                            - Defaut value: auto
+                            - Possible options: [auto, always, never]
     -U, --human-readable    Use more human-readable formats."
 );
 
@@ -76,6 +79,8 @@ pub struct Arguments {
     /// The method to use to hoist the displayed entries.
     pub hoist_function: HoistType,
 
+    /// Whether to use color in the program's output.
+    pub color: Option<bool>,
     /// Whether to use human-readable sizes.
     pub use_human_sizes: bool,
 }
@@ -172,6 +177,14 @@ fn parse_arguments<'arg>(mut options: Options<&'arg str, impl Iterator<Item = &'
                     Ok("symlinks") => HoistType::Symlinks,
                     Ok(other) => return Output::Error(format!("unknown hoisting type: {other}")),
                 };
+            }
+            Opt::Long("color") | Opt::Short('c') => {
+                arguments.color = match options.value() {
+                    Err(_) | Ok("auto") => None,
+                    Ok("always") => Some(true),
+                    Ok("never") => Some(false),
+                    Ok(other) => return Output::Error(format!("unknown color choice: {other}")),
+                }
             }
             Opt::Long("human-readable") | Opt::Short('U') => {
                 arguments.use_human_sizes = true;

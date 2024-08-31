@@ -26,14 +26,17 @@ use crate::{cwrite, Entry};
 /// Displays an entry's permissions.
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct PermissionsDisplay {}
+pub struct PermissionsDisplay {
+    /// Whether to display with color.
+    color: Option<bool>,
+}
 
 #[allow(clippy::unused_self)]
 impl PermissionsDisplay {
     /// Creates a new [`PermissionsDisplay`].
     #[must_use]
-    pub const fn new() -> Self {
-        Self {}
+    pub const fn new(color: Option<bool>) -> Self {
+        Self { color }
     }
 
     /// Displays an entry's Unix permissions.
@@ -78,34 +81,38 @@ impl PermissionsDisplay {
     fn show_char<W: Write>(&self, f: &mut W, character: char) -> Result<()> {
         match character {
             // No value.
-            c @ '-' => cwrite!(bright_black; f, "{c}"),
+            c @ '-' => cwrite!(self, bright_black; f, "{c}"),
             // Read (Unix) / Read-only (Windows).
-            c @ 'r' => cwrite!(bright_yellow; f, "{c}"),
+            c @ 'r' => cwrite!(self, bright_yellow; f, "{c}"),
             // Write (Unix).
-            c @ 'w' => cwrite!(bright_red; f, "{c}"),
+            c @ 'w' => cwrite!(self, bright_red; f, "{c}"),
             // Executable (Unix).
-            c @ 'x' => cwrite!(bright_green; f, "{c}"),
+            c @ 'x' => cwrite!(self, bright_green; f, "{c}"),
             // Archive (Windows).
-            c @ 'a' => cwrite!(bright_red; f, "{c}"),
+            c @ 'a' => cwrite!(self, bright_red; f, "{c}"),
             // Hidden (Windows).
-            c @ 'h' => cwrite!(bright_purple; f, "{c}"),
+            c @ 'h' => cwrite!(self, bright_purple; f, "{c}"),
             // System (Windows).
-            c @ 's' => cwrite!(bright_green; f, "{c}"),
+            c @ 's' => cwrite!(self, bright_green; f, "{c}"),
             // Directory.
-            c @ 'd' => cwrite!(bright_blue; f, "{c}"),
+            c @ 'd' => cwrite!(self, bright_blue; f, "{c}"),
             // Symlink.
-            c @ 'l' => cwrite!(bright_cyan; f, "{c}"),
+            c @ 'l' => cwrite!(self, bright_cyan; f, "{c}"),
             // File.
-            c @ '.' => cwrite!(white; f, "{c}"),
+            c @ '.' => cwrite!(self, white; f, "{c}"),
             // Anything else.
-            unknown => cwrite!(bright_magenta; f, "{unknown}"),
+            unknown => cwrite!(self, bright_magenta; f, "{unknown}"),
         }
     }
 }
 
 impl Displayer for PermissionsDisplay {
+    fn color(&self) -> Option<bool> {
+        self.color
+    }
+
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
-        cwrite!(bright_black; f, "[")?;
+        cwrite!(self, bright_black; f, "[")?;
 
         if entry.data.is_file() {
             self.show_char(f, '.')?;
@@ -119,7 +126,7 @@ impl Displayer for PermissionsDisplay {
 
         self.show_entry(f, entry)?;
 
-        cwrite!(bright_black; f, "]").map_err(Into::into)
+        cwrite!(self, bright_black; f, "]").map_err(Into::into)
     }
 }
 

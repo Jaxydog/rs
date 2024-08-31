@@ -116,10 +116,10 @@ pub fn main() -> Result<()> {
     stderr.flush()?;
     drop(stderr);
 
-    let name = NameDisplay::new(arguments.show_symlinks);
-    let permissions = arguments.show_permissions.then(PermissionsDisplay::new);
-    let size = arguments.show_sizes.then(|| SizeDisplay::new(arguments.use_human_sizes));
-    let modified = arguments.show_modified.then(|| ModifiedDisplay::new(arguments.use_human_sizes));
+    let name = NameDisplay::new(arguments.color, arguments.show_symlinks);
+    let permissions = arguments.show_permissions.then(|| PermissionsDisplay::new(arguments.color));
+    let size = arguments.show_sizes.then(|| SizeDisplay::new(arguments.color, arguments.use_human_sizes));
+    let modified = arguments.show_modified.then(|| ModifiedDisplay::new(arguments.color, arguments.use_human_sizes));
 
     for ref entry in entries {
         if let Some(ref displayer) = permissions {
