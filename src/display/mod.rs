@@ -19,11 +19,12 @@ extern crate alloc;
 
 use std::io::Write;
 
-pub use self::header::HeaderDisplay;
-pub use self::modified::ModifiedDisplay;
-pub use self::name::NameDisplay;
-pub use self::permissions::PermissionsDisplay;
-pub use self::size::SizeDisplay;
+pub use header::HeaderDisplay;
+pub use modified::ModifiedDisplay;
+pub use name::NameDisplay;
+pub use permissions::PermissionsDisplay;
+pub use size::SizeDisplay;
+
 use crate::Entry;
 
 /// Defines the header display.
@@ -68,6 +69,82 @@ impl<T: Displayer> Displayer for &T {
     }
 }
 
+/// Writes a format string to standard output, optionally using color.
+///
+/// # Examples
+///
+/// ```
+/// use crate::display::NameDisplay;
+///
+/// let arguments = crate::arguments::parse();
+/// let display = NameDisplay::new(&arguments);
+///
+/// cprint!(display, red; "some text!").expect("writing should not fail");
+/// ```
+#[macro_export]
+macro_rules! cprint {
+    ($self:expr, $color:ident; $($body:tt)*) => {
+        $crate::cwrite!($self, $color, ::owo_colors::Stream::Stdout; &mut ::std::io::stdout(), $($body)*)
+    };
+}
+
+/// Writes a format string to standard error, optionally using color.
+///
+/// # Examples
+///
+/// ```
+/// use crate::display::NameDisplay;
+///
+/// let arguments = crate::arguments::parse();
+/// let display = NameDisplay::new(&arguments);
+///
+/// ceprint!(display, red; "some text!").expect("writing should not fail");
+/// ```
+#[macro_export]
+macro_rules! ceprint {
+    ($self:expr, $color:ident; $($body:tt)*) => {
+        $crate::cwrite!($self, $color, ::owo_colors::Stream::Stderr; &mut ::std::io::stderr(), $($body)*)
+    };
+}
+
+/// Writes a format string to standard output, optionally using color, and appends a newline.
+///
+/// # Examples
+///
+/// ```
+/// use crate::display::NameDisplay;
+///
+/// let arguments = crate::arguments::parse();
+/// let display = NameDisplay::new(&arguments);
+///
+/// cprintln!(display, red; "some text!").expect("writing should not fail");
+/// ```
+#[macro_export]
+macro_rules! cprintln {
+    ($self:expr, $color:ident; $($body:tt)*) => {
+        $crate::cwriteln!($self, $color, ::owo_colors::Stream::Stdout; &mut ::std::io::stdout(), $($body)*)
+    };
+}
+
+/// Writes a format string to standard error, optionally using color, and appends a newline.
+///
+/// # Examples
+///
+/// ```
+/// use crate::display::NameDisplay;
+///
+/// let arguments = crate::arguments::parse();
+/// let display = NameDisplay::new(&arguments);
+///
+/// ceprintln!(display, red; "some text!").expect("writing should not fail");
+/// ```
+#[macro_export]
+macro_rules! ceprintln {
+    ($self:expr, $color:ident; $($body:tt)*) => {
+        $crate::cwriteln!($self, $color, ::owo_colors::Stream::Stderr; &mut ::std::io::stderr(), $($body)*)
+    };
+}
+
 /// Writes a format string to the given buffer, optionally using color.
 ///
 /// # Examples
@@ -84,6 +161,9 @@ impl<T: Displayer> Displayer for &T {
 #[macro_export]
 macro_rules! cwrite {
     ($self:expr, $color:ident; $write:expr, $($body:tt)*) => {
+        $crate::cwrite!($self, $color, ::owo_colors::Stream::Stdout; $write, $($body)*)
+    };
+    ($self:expr, $color:ident, $stream:expr; $write:expr, $($body:tt)*) => {
         match <_ as $crate::display::HasColor>::has_color(&$self) {
             ::core::option::Option::Some(false) => ::core::write!($write, $($body)*),
             ::core::option::Option::Some(true) => ::core::write!(
@@ -96,7 +176,7 @@ macro_rules! cwrite {
                 "{}",
                 <_ as ::owo_colors::OwoColorize>::if_supports_color(
                     &::core::format_args!($($body)*),
-                    ::owo_colors::Stream::Stdout,
+                    $stream,
                     |v| <_ as ::owo_colors::OwoColorize>::$color(v)
                 )
             ),
@@ -120,6 +200,9 @@ macro_rules! cwrite {
 #[macro_export]
 macro_rules! cwriteln {
     ($self:expr, $color:ident; $write:expr, $($body:tt)*) => {
+        $crate::cwriteln!($self, $color, ::owo_colors::Stream::Stdout; $write, $($body)*)
+    };
+    ($self:expr, $color:ident, $stream:expr; $write:expr, $($body:tt)*) => {
         match <_ as $crate::display::HasColor>::has_color(&$self) {
             ::core::option::Option::Some(false) => ::core::writeln!($write, $($body)*),
             ::core::option::Option::Some(true) => ::core::writeln!(
@@ -132,7 +215,7 @@ macro_rules! cwriteln {
                 "{}",
                 <_ as ::owo_colors::OwoColorize>::if_supports_color(
                     &::core::format_args!($($body)*),
-                    ::owo_colors::Stream::Stdout,
+                    $stream,
                     |v| <_ as ::owo_colors::OwoColorize>::$color(v)
                 )
             ),
