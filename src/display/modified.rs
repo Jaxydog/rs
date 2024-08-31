@@ -23,7 +23,7 @@ use time::{OffsetDateTime, UtcOffset};
 use crate::arguments::Arguments;
 use crate::cwrite;
 
-use super::Displayer;
+use super::{Displayer, HasColor};
 
 /// A human-friendly format.
 const HUMAN_FORMAT: &[FormatItem] = time::macros::format_description!(
@@ -52,11 +52,13 @@ impl<'ar> ModifiedDisplay<'ar> {
     }
 }
 
-impl Displayer for ModifiedDisplay<'_> {
-    fn color(&self) -> Option<bool> {
+impl HasColor for ModifiedDisplay<'_> {
+    fn has_color(&self) -> Option<bool> {
         self.arguments.color
     }
+}
 
+impl Displayer for ModifiedDisplay<'_> {
     fn show<W: Write>(&self, f: &mut W, entry: &crate::Entry) -> Result<()> {
         let time = entry.data.modified()?;
         let mut time = OffsetDateTime::from(time);

@@ -37,14 +37,23 @@ mod permissions;
 /// Defines the size display.
 mod size;
 
-/// A type that displays entries.
-pub trait Displayer {
+/// A type that determines whether to display using color.
+pub trait HasColor {
     /// Whether to display color.
     ///
     /// This usually will not need to be called directly; it should be preferred to call the [`cwrite!`]
     /// or [`cwriteln!`] macros instead.
-    fn color(&self) -> Option<bool>;
+    fn has_color(&self) -> Option<bool>;
+}
 
+impl<T: HasColor> HasColor for &T {
+    fn has_color(&self) -> Option<bool> {
+        <T as HasColor>::has_color(self)
+    }
+}
+
+/// A type that displays entries.
+pub trait Displayer {
     /// Displays an entry.
     ///
     /// # Errors
@@ -54,10 +63,6 @@ pub trait Displayer {
 }
 
 impl<T: Displayer> Displayer for &T {
-    fn color(&self) -> Option<bool> {
-        <T as Displayer>::color(self)
-    }
-
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> std::io::Result<()> {
         <T as Displayer>::show(self, f, entry)
     }
@@ -79,7 +84,7 @@ impl<T: Displayer> Displayer for &T {
 #[macro_export]
 macro_rules! cwrite {
     ($self:expr, $color:ident; $write:expr, $($body:tt)*) => {
-        match <_ as $crate::display::Displayer>::color(&$self) {
+        match <_ as $crate::display::HasColor>::has_color(&$self) {
             ::core::option::Option::Some(false) => ::core::write!($write, $($body)*),
             ::core::option::Option::Some(true) => ::core::write!(
                 $write,
@@ -115,18 +120,18 @@ macro_rules! cwrite {
 #[macro_export]
 macro_rules! cwriteln {
     ($self:expr, $color:ident; $write:expr, $($body:tt)*) => {
-        match <_ as $crate::display::Displayer>::color(&$self) {
+        match <_ as $crate::display::HasColor>::has_color(&$self) {
             ::core::option::Option::Some(false) => ::core::writeln!($write, $($body)*),
             ::core::option::Option::Some(true) => ::core::writeln!(
                 $write,
                 "{}",
-                <_ as ::owo_colors::OwoColorize>::$color(::core::format_args!($($body)*))
+                <_ as ::owo_colors::OwoColorize>::$color(&::core::format_args!($($body)*))
             ),
             ::core::option::Option::None => ::core::writeln!(
                 $write,
                 "{}",
                 <_ as ::owo_colors::OwoColorize>::if_supports_color(
-                    ::core::format_args!($($body)*),
+                    &::core::format_args!($($body)*),
                     ::owo_colors::Stream::Stdout,
                     |v| <_ as ::owo_colors::OwoColorize>::$color(v)
                 )

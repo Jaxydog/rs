@@ -20,7 +20,7 @@ extern crate alloc;
 use core::fmt::Display;
 use std::io::{Result, Write};
 
-use super::Displayer;
+use super::{Displayer, HasColor};
 use crate::{arguments::Arguments, cwrite, Entry};
 
 /// Displays an entry's name.
@@ -102,11 +102,13 @@ impl<'ar> SizeDisplay<'ar> {
     }
 }
 
-impl Displayer for SizeDisplay<'_> {
-    fn color(&self) -> Option<bool> {
+impl HasColor for SizeDisplay<'_> {
+    fn has_color(&self) -> Option<bool> {
         self.arguments.color
     }
+}
 
+impl Displayer for SizeDisplay<'_> {
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
         if entry.data.is_dir() {
             return self.show_aligned(f, if self.arguments.human_readable { "- -  " } else { "-" }, true);

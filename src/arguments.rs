@@ -15,42 +15,23 @@
 // You should have received a copy of the GNU Affero General Public License along with rs. If not,
 // see <https://www.gnu.org/licenses/>.
 
-use std::path::{Path, PathBuf};
+use std::{
+    io::{Result, Write},
+    path::{Path, PathBuf},
+};
 
 use getargs::{Arg, Opt, Options};
 
-use crate::sort::{HoistType, SortType};
+use crate::{
+    cwrite, cwriteln,
+    display::HasColor,
+    sort::{HoistType, SortType},
+};
 
-/// The help command string.
-const HELP: &str = concat!(
-    env!("CARGO_PKG_DESCRIPTION"),
-    "\n\nUsage: ",
-    env!("CARGO_BIN_NAME"),
-    " [OPTIONS] [PATH...]",
-    "\n\nOptions:
-    -h, --help              Display this program's usage.
-    -V, --version           Display this program's version.
-
-    -A, --all               Display hidden files (excluding . and ..).
-    -P, --show-permissions  Display entry permissions.
-    -S, --show-sizes        Display file sizes.
-    -M, --show-modified     Display entry modification date.
-    -L, --resolve-symlinks  Display resolved symbolic links.
-
-    -r, --reverse           Reverse the displayed sorting order.
-    -s, --sort              Sort displayed entries in the specified order.
-                            - Default value: name
-                            - Possible options: [name, size, created, modified]
-
-    -H, --hoist             Group specific entries at the top of the listing.
-                            - Default value: none
-                            - Possible options: [none, directories, dirs, hidden, symlinks]
-
-    -c, --color             Whether to use color in the program's output.
-                            - Defaut value: auto
-                            - Possible options: [auto, always, never]
-    -U, --human-readable    Use more human-readable formats."
-);
+/// An option to be displayed in the help listing.
+type HelpOption<'a> = (Option<char>, &'a str, &'a str, Option<HelpOptionValues<'a>>);
+/// A list of values and their default.
+type HelpOptionValues<'a> = (&'a str, &'a [&'a str]);
 
 /// The application's command-line arguments.
 #[allow(clippy::struct_excessive_bools)]
@@ -83,6 +64,12 @@ pub struct Arguments {
     pub color: Option<bool>,
     /// Whether to use human-readable sizes.
     pub human_readable: bool,
+}
+
+impl HasColor for Arguments {
+    fn has_color(&self) -> Option<bool> {
+        self.color
+    }
 }
 
 /// The output of parsing arguments.
@@ -133,7 +120,7 @@ fn parse_arguments<'arg>(mut options: Options<&'arg str, impl Iterator<Item = &'
 
         match option {
             Opt::Long("help") | Opt::Short('h') => {
-                println!("{HELP}");
+                self::print_help(&arguments, false).expect("failed to print help menu");
 
                 return Output::Exit;
             }
@@ -202,4 +189,132 @@ fn parse_arguments<'arg>(mut options: Options<&'arg str, impl Iterator<Item = &'
     arguments.paths = paths.into_boxed_slice();
 
     Output::Arguments(arguments)
+}
+
+/// Prints a help display.
+///
+/// # Errors
+///
+/// This function will return an error if the display could not be printed.
+fn print_help(arguments: &Arguments, error: bool) -> Result<()> {
+    const OPTIONS: &[Option<HelpOption<'static>>] = &[
+        Some((Some('h'), "help", "Displays this program's usage.", None)),
+        Some((Some('V'), "version", "Displays this program's version.", None)),
+        None,
+        Some((Some('A'), "all", "Display hidden files (excluding . and ..).", None)),
+        Some((Some('P'), "show-permissions", "Display entry permissions.", None)),
+        Some((Some('S'), "show-sizes", "Display file sizes.", None)),
+        Some((Some('M'), "show-modified", "Display entry modification date.", None)),
+        Some((Some('L'), "resolve-symlinks", "Display resolved symbolic links.", None)),
+        None,
+        Some((Some('r'), "reverse", "Reverse the displayed sorting order.", None)),
+        Some((
+            Some('s'),
+            "sort",
+            "Sort displayed entries in the specified order.",
+            Some(("name", &["name", "size", "created", "modified"])),
+        )),
+        None,
+        Some((
+            Some('H'),
+            "hoist",
+            "Group specific entries at the top of the listing.",
+            Some(("none", &["none", "directories", "dirs", "hidden", "symlinks"])),
+        )),
+        None,
+        Some((
+            Some('c'),
+            "color",
+            "Set whether to use color in the program's output.",
+            Some(("auto", &["auto", "always", "never"])),
+        )),
+        Some((Some('U'), "human-readable", "Use more human-readable formats.", None)),
+    ];
+
+    if error {
+        self::write_help(arguments, &mut std::io::stderr(), OPTIONS)
+    } else {
+        self::write_help(arguments, &mut std::io::stdout(), OPTIONS)
+    }
+}
+
+/// Writes a help display into the given formatter.
+///
+/// # Errors
+///
+/// This function will return an error if the display failed to be written.
+fn write_help<I>(arguments: &Arguments, f: &mut impl Write, options: I) -> Result<()>
+where
+    I: IntoIterator<Item = &'static Option<HelpOption<'static>>>,
+{
+    const OPTION_START_SPACING: usize = 2;
+    const OPTION_INNER_SPACING: usize = 18;
+    const FULL_SPACING: usize = OPTION_START_SPACING + 4 + 2 + OPTION_INNER_SPACING;
+
+    cwriteln!(arguments, italic; f, "{}", env!("CARGO_PKG_DESCRIPTION"))?;
+
+    f.write_all(b"\n")?;
+
+    cwrite!(arguments, bold; f, "Usage:")?;
+
+    f.write_all(concat!(" ", env!("CARGO_PKG_NAME"), " [OPTIONS] [PATH...]\n\n").as_bytes())?;
+
+    cwriteln!(arguments, bold; f, "Options:")?;
+
+    for option in options {
+        let Some((short, long, description, values)) = *option else {
+            f.write_all(b"\n")?;
+
+            continue;
+        };
+
+        f.write_all(&b" ".repeat(OPTION_START_SPACING))?;
+
+        if let Some(short) = short {
+            cwrite!(arguments, bright_cyan; f, "-{short}")?;
+            f.write_all(b", ")?;
+        } else {
+            f.write_all(b"    ")?;
+        }
+
+        cwrite!(arguments, bright_cyan; f, "--{long}")?;
+
+        let spacing = (OPTION_INNER_SPACING - 1).saturating_sub(long.len()) + 1;
+
+        f.write_all(&b" ".repeat(spacing))?;
+
+        cwriteln!(arguments, italic; f, "{description}")?;
+
+        if let Some((default, values)) = values {
+            f.write_all(&b" ".repeat(FULL_SPACING))?;
+
+            cwrite!(arguments, bright_black; f, "-")?;
+
+            f.write_all(b" Default value: ")?;
+
+            cwriteln!(arguments, bold; f, "{default}")?;
+
+            if values.is_empty() {
+                continue;
+            }
+
+            f.write_all(&b" ".repeat(FULL_SPACING))?;
+
+            cwrite!(arguments, bright_black; f, "-")?;
+
+            f.write_all(b" Possible values: ")?;
+
+            for (index, value) in values.iter().enumerate() {
+                cwrite!(arguments, bold; f, "{value}")?;
+
+                if index < values.len() - 1 {
+                    f.write_all(b", ")?;
+                }
+            }
+
+            f.write_all(b"\n")?;
+        }
+    }
+
+    Ok(())
 }

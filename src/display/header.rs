@@ -19,7 +19,7 @@ use std::io::{Result, Write};
 
 use crate::{arguments::Arguments, cwrite, Entry};
 
-use super::Displayer;
+use super::{Displayer, HasColor};
 
 /// Displays a directory header.
 #[non_exhaustive]
@@ -37,11 +37,13 @@ impl<'ar> HeaderDisplay<'ar> {
     }
 }
 
-impl<'ar> Displayer for HeaderDisplay<'ar> {
-    fn color(&self) -> Option<bool> {
+impl HasColor for HeaderDisplay<'_> {
+    fn has_color(&self) -> Option<bool> {
         self.arguments.color
     }
+}
 
+impl Displayer for HeaderDisplay<'_> {
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
         cwrite!(self, bright_blue; f, "{}", entry.path.to_string_lossy())?;
 

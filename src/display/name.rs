@@ -23,7 +23,7 @@ use std::path::MAIN_SEPARATOR;
 
 use is_executable::IsExecutable;
 
-use super::Displayer;
+use super::{Displayer, HasColor};
 use crate::arguments::Arguments;
 use crate::{cwrite, Entry};
 
@@ -136,11 +136,13 @@ impl<'ar> NameDisplay<'ar> {
     }
 }
 
-impl Displayer for NameDisplay<'_> {
-    fn color(&self) -> Option<bool> {
+impl HasColor for NameDisplay<'_> {
+    fn has_color(&self) -> Option<bool> {
         self.arguments.color
     }
+}
 
+impl Displayer for NameDisplay<'_> {
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
         let name = if self.trim_file_paths {
             let os_name = entry.path.file_name().unwrap_or(entry.path.as_os_str());

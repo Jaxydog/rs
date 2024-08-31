@@ -20,7 +20,7 @@ extern crate alloc;
 use std::fs::Metadata;
 use std::io::{Result, Write};
 
-use super::Displayer;
+use super::{Displayer, HasColor};
 use crate::arguments::Arguments;
 use crate::{cwrite, Entry};
 
@@ -107,11 +107,13 @@ impl<'ar> PermissionsDisplay<'ar> {
     }
 }
 
-impl Displayer for PermissionsDisplay<'_> {
-    fn color(&self) -> Option<bool> {
+impl HasColor for PermissionsDisplay<'_> {
+    fn has_color(&self) -> Option<bool> {
         self.arguments.color
     }
+}
 
+impl Displayer for PermissionsDisplay<'_> {
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
         cwrite!(self, bright_black; f, "[")?;
 
