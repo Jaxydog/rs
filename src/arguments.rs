@@ -212,8 +212,8 @@ fn print_help(arguments: &Arguments, error: bool) -> Result<()> {
     }
 
     const OPTIONS: &[Option<HelpOption<'static>>] = &[
-        option!('h', "help", "Displays this program's usage."),
-        option!('V', "version", "Displays this program's version."),
+        option!('h', "help", "Show this program's usage."),
+        option!('V', "version", "Show this program's version."),
         None,
         option!('A', "all", "Display hidden files (excluding . and ..)."),
         option!('P', "show-permissions", "Display entry permissions."),

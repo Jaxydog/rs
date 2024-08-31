@@ -13,8 +13,8 @@ Arguments:
 - `PATH` - The path(s) to list.
 
 Options:
-- `-h`, `--help` - Displays the command's usage.
-- `-V`, `--version` - Displays the command's version.
+- `-h`, `--help` - Show the command's usage.
+- `-V`, `--version` - Show the command's version.
 
 - `-A`, `--all` - Display hidden files (excluding `.` and `..`)
 - `-P`, `--show-permissions` - Display entry permissions.
@@ -35,6 +35,7 @@ Options:
     - `hidden` - Group hidden entries at the top.
     - `symlinks` - Group symbolic links at the top.
 
+- `-c`, `--color` - Set whether to use color in the program's output.
 - `-U`, `--human-readable` - Use more human-readable formats.
 
 ### Examples
