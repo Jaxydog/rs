@@ -24,8 +24,8 @@
 extern crate alloc;
 
 use std::fs::{DirEntry, Metadata};
-use std::io::{Result, Write};
-use std::path::PathBuf;
+use std::io::{Result, StderrLock, StdoutLock, Write};
+use std::path::{Path, PathBuf};
 
 use display::{Displayer, ModifiedDisplay, NameDisplay, PermissionsDisplay, SizeDisplay};
 use sort::{HoistType, SortType, Sorter};
@@ -62,6 +62,37 @@ impl TryFrom<DirEntry> for Entry {
     }
 }
 
+/// Returns an iterator over entries for the given path.
+///
+/// # Errors
+///
+/// This function will return an error if the iterator could not be created.
+pub fn iterator(
+    stdout: &mut StdoutLock,
+    stderr: &mut StderrLock,
+    path: Option<&Path>,
+) -> Result<Option<impl Iterator<Item = Result<DirEntry>>>> {
+    let Some(path) = path else {
+        return std::fs::read_dir(".").map(Some);
+    };
+
+    if !path.try_exists()? {
+        writeln!(stderr, "Invalid path '{}'.", path.to_string_lossy())?;
+
+        return Ok(None);
+    }
+    if path.is_file() {
+        writeln!(stdout, "'{}' is a file.", path.to_string_lossy())?;
+
+        return Ok(None);
+    }
+    if path.is_symlink() {
+        return self::iterator(stdout, stderr, Some(&std::fs::read_link(path)?));
+    }
+
+    std::fs::read_dir(path).map(Some)
+}
+
 /// The program's entrypoint.
 ///
 /// # Errors
@@ -76,19 +107,12 @@ pub fn main() -> Result<()> {
 
     let mut stdout = std::io::stdout().lock();
     let mut stderr = std::io::stderr().lock();
-    let mut path = arguments.path.clone().unwrap_or_else(|| PathBuf::from(".").into_boxed_path());
 
-    if !path.try_exists()? {
-        return writeln!(&mut stderr, "Invalid path '{}'.", path.to_string_lossy());
-    }
-    if path.is_symlink() {
-        path = std::fs::read_link(path)?.into_boxed_path();
-    }
-    if path.is_file() {
-        return writeln!(&mut stdout, "'{}' is a file.", path.to_string_lossy());
-    }
+    let Some(iterator) = self::iterator(&mut stdout, &mut stderr, arguments.path.as_deref())? else {
+        return Ok(());
+    };
 
-    let mut entries = std::fs::read_dir(&path)?.map(|v| v.and_then(Entry::try_from)).collect::<Result<Vec<_>>>()?;
+    let mut entries = iterator.map(|v| v.and_then(Entry::try_from)).collect::<Result<Vec<_>>>()?;
 
     if !arguments.show_hidden {
         entries.retain(|entry| {
