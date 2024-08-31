@@ -23,7 +23,6 @@ use std::{
 use getargs::{Arg, Opt, Options};
 
 use crate::{
-    cwrite, cwriteln,
     display::HasColor,
     sort::{HoistType, SortType},
 };
@@ -243,10 +242,30 @@ fn print_help(arguments: &Arguments, error: bool) -> Result<()> {
     ];
 
     if error {
-        self::write_help(arguments, &mut std::io::stderr(), OPTIONS)
+        self::write_help(arguments, &mut std::io::stderr(), error, OPTIONS)
     } else {
-        self::write_help(arguments, &mut std::io::stdout(), OPTIONS)
+        self::write_help(arguments, &mut std::io::stdout(), error, OPTIONS)
     }
+}
+
+macro_rules! cprint {
+    ($error:expr, $self:expr, $color:ident; $write:expr, $($body:tt)*) => {
+        if $error {
+            $crate::cwrite!($self, $color, ::owo_colors::Stream::Stderr; $write, $($body)*)
+        } else {
+            $crate::cwrite!($self, $color, ::owo_colors::Stream::Stdout; $write, $($body)*)
+        }
+    };
+}
+
+macro_rules! cprintln {
+    ($error:expr, $self:expr, $color:ident; $write:expr, $($body:tt)*) => {
+        if $error {
+            $crate::cwriteln!($self, $color, ::owo_colors::Stream::Stderr; $write, $($body)*)
+        } else {
+            $crate::cwriteln!($self, $color, ::owo_colors::Stream::Stdout; $write, $($body)*)
+        }
+    };
 }
 
 /// Writes a help display into the given formatter.
@@ -254,86 +273,126 @@ fn print_help(arguments: &Arguments, error: bool) -> Result<()> {
 /// # Errors
 ///
 /// This function will return an error if the display failed to be written.
-fn write_help<I>(arguments: &Arguments, f: &mut impl Write, options: I) -> Result<()>
+fn write_help<I>(arguments: &Arguments, f: &mut impl Write, error: bool, options: I) -> Result<()>
 where
     I: IntoIterator<Item = &'static Option<HelpOption<'static>>>,
 {
-    const OPTION_START_SPACING: usize = 2;
-    const OPTION_INNER_SPACING: usize = 18;
-    const FULL_SPACING: usize = OPTION_START_SPACING + 4 + 2 + OPTION_INNER_SPACING;
-
-    cwriteln!(arguments, italic; f, "{}", env!("CARGO_PKG_DESCRIPTION"))?;
+    cprintln!(error, arguments, italic; f, "{}", env!("CARGO_PKG_DESCRIPTION"))?;
 
     f.write_all(b"\n")?;
 
-    cwrite!(arguments, bold; f, "Usage:")?;
+    cprint!(error, arguments, bold; f, "Usage:")?;
 
     f.write_all(concat!(" ", env!("CARGO_PKG_NAME"), " [OPTIONS] [PATH...]\n\n").as_bytes())?;
 
-    cwriteln!(arguments, bold; f, "Options:")?;
+    cprintln!(error, arguments, bold; f, "Options:")?;
 
     for option in options {
-        let Some((short, long, description, values)) = *option else {
-            f.write_all(b"\n")?;
-
-            continue;
-        };
-
-        f.write_all(&b" ".repeat(OPTION_START_SPACING))?;
-
-        if let Some(short) = short {
-            cwrite!(arguments, bright_cyan; f, "-{short}")?;
-            f.write_all(b", ")?;
+        if let Some(option) = *option {
+            self::write_help_option(arguments, f, error, option)?;
         } else {
-            f.write_all(b"    ")?;
-        }
-
-        cwrite!(arguments, bright_cyan; f, "--{long}")?;
-
-        let spacing = (OPTION_INNER_SPACING - 1).saturating_sub(long.len()) + 1;
-
-        f.write_all(&b" ".repeat(spacing))?;
-
-        writeln!(f, "{description}")?;
-
-        if let Some((default, values)) = values {
-            f.write_all(&b" ".repeat(FULL_SPACING))?;
-
-            cwrite!(arguments, bright_black; f, "-")?;
-
-            f.write_all(b" ")?;
-
-            cwrite!(arguments, italic; f, "Default value:")?;
-
-            f.write_all(b" ")?;
-
-            cwriteln!(arguments, bold; f, "{default}")?;
-
-            if values.is_empty() {
-                continue;
-            }
-
-            f.write_all(&b" ".repeat(FULL_SPACING))?;
-
-            cwrite!(arguments, bright_black; f, "-")?;
-
-            f.write_all(b" ")?;
-
-            cwrite!(arguments, italic; f, "Possible values:")?;
-
-            f.write_all(b" ")?;
-
-            for (index, value) in values.iter().enumerate() {
-                cwrite!(arguments, bold; f, "{value}")?;
-
-                if index < values.len() - 1 {
-                    f.write_all(b", ")?;
-                }
-            }
-
             f.write_all(b"\n")?;
         }
     }
 
     Ok(())
+}
+
+/// Writes a help display's option into the given formatter.
+///
+/// # Errors
+///
+/// This function will return an error if the display failed to be written.
+fn write_help_option(
+    arguments: &Arguments,
+    f: &mut impl Write,
+    error: bool,
+    (short, long, description, values): HelpOption<'_>,
+) -> Result<()> {
+    /// The number of spaces to add to the front of the option listing.
+    const START_PAD: &[u8] = b"  ";
+    /// The number of spaces to add between the options and their descriptions.
+    const GAP_WIDTH: usize = 24;
+    /// The total number of characters that the short option takes up.
+    const SHORT_LEN: usize = "-A, ".len();
+    /// The total number of characters that '--' takes up.
+    const LONG_DASH_LEN: usize = "--".len();
+    /// The total number of space before the description should be printed.
+    const DESCRIPTION_OFFSET: usize = START_PAD.len() + SHORT_LEN + LONG_DASH_LEN + GAP_WIDTH;
+
+    f.write_all(START_PAD)?;
+
+    if let Some(short) = short {
+        cprint!(error, arguments, bright_cyan; f, "-{short}")?;
+
+        f.write_all(b", ")?;
+    } else {
+        f.write_all(&b" ".repeat(SHORT_LEN))?;
+    }
+
+    let long_len = long.chars().count();
+
+    // Truncate if the option overflows.
+    if long_len >= GAP_WIDTH {
+        cprint!(error, arguments, bright_cyan; f, "--{}...", &long[..GAP_WIDTH - 4])?;
+    } else {
+        cprint!(error, arguments, bright_cyan; f, "--{long}")?;
+    }
+
+    // Ensure at least one space is always printed betwixt the options and their descriptions.
+    let spacing = (GAP_WIDTH - 1).saturating_sub(long_len) + 1;
+
+    f.write_all(&b" ".repeat(spacing))?;
+
+    writeln!(f, "{description}")?;
+
+    values.map_or(Ok(()), |values| self::write_help_option_values::<DESCRIPTION_OFFSET>(arguments, f, error, values))
+}
+
+/// Writes a help display's option's values into the given formatter.
+///
+/// # Errors
+///
+/// This function will return an error if the display failed to be written.
+fn write_help_option_values<const DESCRIPTION_OFFSET: usize>(
+    arguments: &Arguments,
+    f: &mut impl Write,
+    error: bool,
+    (default, values): HelpOptionValues<'_>,
+) -> Result<()> {
+    f.write_all(&b" ".repeat(DESCRIPTION_OFFSET))?;
+
+    cprint!(error, arguments, bright_black; f, "-")?;
+
+    f.write_all(b" ")?;
+
+    cprint!(error, arguments, italic; f, "Default value:")?;
+
+    f.write_all(b" ")?;
+
+    cprintln!(error, arguments, bold; f, "{default}")?;
+
+    if values.is_empty() {
+        return Ok(());
+    }
+
+    f.write_all(&b" ".repeat(DESCRIPTION_OFFSET))?;
+
+    cprint!(error, arguments, bright_black; f, "-")?;
+
+    f.write_all(b" ")?;
+
+    cprint!(error, arguments, italic; f, "Possible values:")?;
+
+    f.write_all(b" ")?;
+
+    for (index, value) in values.iter().enumerate() {
+        cprint!(error, arguments, bold; f, "{value}")?;
+
+        if index < values.len() - 1 {
+            f.write_all(b", ")?;
+        }
+    }
+
+    f.write_all(b"\n")
 }
