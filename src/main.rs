@@ -211,6 +211,7 @@ pub fn main() -> Result<()> {
     for path in &arguments.paths {
         let Some(entries) = self::entries_list(&arguments, &mut stdout, &mut stderr, path)? else {
             stderr.flush()?;
+            stdout.write_all(b"\n")?;
 
             continue;
         };
