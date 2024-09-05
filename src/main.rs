@@ -196,10 +196,10 @@ pub fn main() -> Result<()> {
     if arguments.paths.is_empty() {
         let directory = std::env::current_dir()?;
         let Some(entries) = self::entries_list(&arguments, &mut stdout, &mut stderr, directory)? else {
+            stderr.flush()?;
+
             return Ok(());
         };
-
-        stderr.flush()?;
 
         self::show(&arguments, &mut stdout, entries)?;
 
@@ -210,10 +210,10 @@ pub fn main() -> Result<()> {
 
     for path in &arguments.paths {
         let Some(entries) = self::entries_list(&arguments, &mut stdout, &mut stderr, path)? else {
+            stderr.flush()?;
+
             continue;
         };
-
-        stderr.flush()?;
 
         let entry = Entry::new(PathBuf::from(&(**path)), path.metadata()?);
 
