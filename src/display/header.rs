@@ -17,6 +17,8 @@
 
 use std::io::{Result, Write};
 
+use owo_colors::OwoColorize;
+
 use crate::{arguments::Arguments, cwrite, Entry};
 
 use super::{Displayer, HasColor};
@@ -45,7 +47,7 @@ impl HasColor for HeaderDisplay<'_> {
 
 impl Displayer for HeaderDisplay<'_> {
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
-        cwrite!(self, bright_blue; f, "{}", entry.path.to_string_lossy())?;
+        cwrite!(self, bright_blue; f, "{}", entry.path.to_string_lossy().bold())?;
 
         f.write_all(b":")
     }
