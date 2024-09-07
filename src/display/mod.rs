@@ -74,12 +74,16 @@ impl<T: Displayer> Displayer for &T {
 /// # Examples
 ///
 /// ```
-/// use crate::display::NameDisplay;
-///
+/// # use crate::display::NameDisplay;
+/// # fn main() -> std::io::Result<()> {
+/// #
 /// let arguments = crate::arguments::parse();
 /// let display = NameDisplay::new(&arguments);
 ///
-/// cprint!(display, red; "some text!").expect("writing should not fail");
+/// cprint!(display, red; "some text!")?;
+/// #
+/// # Ok(())
+/// # }
 /// ```
 #[macro_export]
 macro_rules! cprint {
@@ -93,12 +97,16 @@ macro_rules! cprint {
 /// # Examples
 ///
 /// ```
-/// use crate::display::NameDisplay;
-///
+/// # use crate::display::NameDisplay;
+/// # fn main() -> std::io::Result<()> {
+/// #
 /// let arguments = crate::arguments::parse();
 /// let display = NameDisplay::new(&arguments);
 ///
-/// ceprint!(display, red; "some text!").expect("writing should not fail");
+/// ceprint!(display, red; "some text!")?;
+/// #
+/// # Ok(())
+/// # }
 /// ```
 #[macro_export]
 macro_rules! ceprint {
@@ -112,12 +120,16 @@ macro_rules! ceprint {
 /// # Examples
 ///
 /// ```
-/// use crate::display::NameDisplay;
-///
+/// # use crate::display::NameDisplay;
+/// # fn main() -> std::io::Result<()> {
+/// #
 /// let arguments = crate::arguments::parse();
 /// let display = NameDisplay::new(&arguments);
 ///
-/// cprintln!(display, red; "some text!").expect("writing should not fail");
+/// cprintln!(display, red; "some text!")?;
+/// #
+/// # Ok(())
+/// # }
 /// ```
 #[macro_export]
 macro_rules! cprintln {
@@ -131,12 +143,16 @@ macro_rules! cprintln {
 /// # Examples
 ///
 /// ```
-/// use crate::display::NameDisplay;
-///
+/// # use crate::display::NameDisplay;
+/// # fn main() -> std::io::Result<()> {
+/// #
 /// let arguments = crate::arguments::parse();
 /// let display = NameDisplay::new(&arguments);
 ///
-/// ceprintln!(display, red; "some text!").expect("writing should not fail");
+/// ceprintln!(display, red; "some text!")?;
+/// #
+/// # Ok(())
+/// # }
 /// ```
 #[macro_export]
 macro_rules! ceprintln {
@@ -150,13 +166,17 @@ macro_rules! ceprintln {
 /// # Examples
 ///
 /// ```
-/// use crate::display::NameDisplay;
-///
+/// # use crate::display::NameDisplay;
+/// # fn main() -> std::io::Result<()> {
+/// #
 /// let arguments = crate::arguments::parse();
 /// let mut stdout = std::io::stdout();
 /// let display = NameDisplay::new(&arguments);
 ///
-/// cwrite!(display, red; &mut stdout, "some text!").expect("writing should not fail");
+/// cwrite!(display, red; &mut stdout, "some text!")?;
+/// #
+/// # Ok(())
+/// # }
 /// ```
 #[macro_export]
 macro_rules! cwrite {
@@ -189,13 +209,17 @@ macro_rules! cwrite {
 /// # Examples
 ///
 /// ```
-/// use crate::display::NameDisplay;
-///
+/// # use crate::display::NameDisplay;
+/// # fn main() -> std::io::Result<()> {
+/// #
 /// let arguments = crate::arguments::parse();
 /// let mut stdout = std::io::stdout();
 /// let display = NameDisplay::new(&arguments);
 ///
-/// cwriteln!(display, red; &mut stdout, "some text!").expect("writing should not fail");
+/// cwriteln!(display, red; &mut stdout, "some text!")?;
+/// #
+/// # Ok(())
+/// # }
 /// ```
 #[macro_export]
 macro_rules! cwriteln {
