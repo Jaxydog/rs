@@ -17,9 +17,10 @@
 
 //! A Rust implementation of 'ls'.
 #![deny(clippy::unwrap_used, unsafe_code)]
+#![warn(clippy::allow_attributes, clippy::allow_attributes_without_reason)]
 #![warn(clippy::cargo, clippy::nursery, clippy::pedantic, clippy::todo, missing_docs)]
 #![warn(clippy::alloc_instead_of_core, clippy::std_instead_of_alloc, clippy::std_instead_of_core)]
-#![allow(clippy::module_name_repetitions)]
+#![expect(clippy::module_name_repetitions, reason = "adds clarity when using imported types")]
 
 extern crate alloc;
 
@@ -178,11 +179,11 @@ pub fn show(arguments: &Arguments, stdout: &mut StdoutLock, iterator: impl IntoI
     Ok(())
 }
 
-/// The program's entrypoint.
+/// The program's entry-point.
 ///
 /// # Errors
 ///
-/// This function will return an error if the program's execution fails in an un-recoverable manner.
+/// This function will return an error if the program's execution fails in an unrecoverable manner.
 pub fn main() -> Result<()> {
     let mut arguments = self::arguments::parse();
 

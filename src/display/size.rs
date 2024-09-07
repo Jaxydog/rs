@@ -75,7 +75,7 @@ impl<'ar> SizeDisplay<'ar> {
     /// # Errors
     ///
     /// This function will return an error if the value cannot be displayed.
-    #[allow(clippy::cast_precision_loss)]
+    #[expect(clippy::cast_precision_loss, reason = "ints never be high enough to lose meaningful precision")]
     fn show_human_readable<W: Write>(&self, f: &mut W, bytes: u64) -> Result<()> {
         if bytes == 0 {
             return self.show_aligned(f, format_args!("0 {}", Self::SUFFIXES[0]), false);

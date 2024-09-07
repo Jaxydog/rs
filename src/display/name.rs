@@ -37,7 +37,6 @@ pub struct NameDisplay<'ar> {
     trim_file_paths: bool,
 }
 
-#[allow(clippy::unused_self)]
 impl<'ar> NameDisplay<'ar> {
     /// Creates a new [`NameDisplay`].
     #[must_use]
@@ -45,7 +44,7 @@ impl<'ar> NameDisplay<'ar> {
         Self { arguments, trim_file_paths: true }
     }
 
-    /// Displays a symlink file name within the given writer.
+    /// Displays a symbolic link file name within the given writer.
     ///
     /// # Errors
     ///

@@ -32,7 +32,6 @@ pub struct PermissionsDisplay<'ar> {
     arguments: &'ar Arguments,
 }
 
-#[allow(clippy::unused_self)]
 impl<'ar> PermissionsDisplay<'ar> {
     /// Creates a new [`PermissionsDisplay`].
     #[must_use]
@@ -97,7 +96,7 @@ impl<'ar> PermissionsDisplay<'ar> {
             c @ 's' => cwrite!(self, bright_green; f, "{c}"),
             // Directory.
             c @ 'd' => cwrite!(self, bright_blue; f, "{c}"),
-            // Symlink.
+            // Symbolic link.
             c @ 'l' => cwrite!(self, bright_cyan; f, "{c}"),
             // File.
             c @ '.' => cwrite!(self, white; f, "{c}"),

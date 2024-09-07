@@ -33,7 +33,7 @@ type HelpOption<'a> = (Option<char>, &'a str, &'a str, Option<HelpOptionValues<'
 type HelpOptionValues<'a> = (&'a str, &'a [&'a str]);
 
 /// The application's command-line arguments.
-#[allow(clippy::struct_excessive_bools)]
+#[expect(clippy::struct_excessive_bools, reason = "a lot of command-line arguments are flags")]
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Arguments {
