@@ -9,38 +9,51 @@ Not intended to be POSIX-compliant or an otherwise legimately used tool, just a 
 ```
 $ rs [OPTIONS] [PATH...]
 ```
+
 Arguments:
+
 - `PATH` - The path(s) to list.
 
 Options:
+
 - `-h`, `--help` - Show the command's usage.
+
 - `-V`, `--version` - Show the command's version.
 
 - `-A`, `--all` - Display hidden files (excluding `.` and `..`)
+
 - `-P`, `--show-permissions` - Display entry permissions.
+
 - `-S`, `--show-sizes` - Display file sizes.
+
 - `-M`, `--show-modified` - Display entry modification date.
+
 - `-L`, `--resolve-symlinks` - Display resolved symbolic links.
 
 - `-r`, `--reverse` - Reverse the displayed sorting order.
+
 - `-s`, `--sort` - Sort displayed entries in the specified order.
-    - `name` (default) - Sort by name, descending alphabetically.
-    - `size` - Sort by size, descending.
-    - `created` - Sort by creation date, descending.
-    - `modified` - Sort by modification date, descending.
+
+  - `name` (default) - Sort by name, descending alphabetically.
+  - `size` - Sort by size, descending.
+  - `created` - Sort by creation date, descending.
+  - `modified` - Sort by modification date, descending.
 
 - `-H`, `--hoist` - Group specific entries at the top of the listing.
-    - `none` (default) - Do not hoist any entries.
-    - `directories`, `dirs` - Group directories at the top.
-    - `hidden` - Group hidden entries at the top.
-    - `symlinks` - Group symbolic links at the top.
+
+  - `none` (default) - Do not hoist any entries.
+  - `directories`, `dirs` - Group directories at the top.
+  - `hidden` - Group hidden entries at the top.
+  - `symlinks` - Group symbolic links at the top.
 
 - `-c`, `--color` - Set whether to use color in the program's output.
+
 - `-U`, `--human-readable` - Use more human-readable formats.
 
 ### Examples
 
 Without any options:
+
 ```
 $ ./rs
 build.sh*
@@ -56,6 +69,7 @@ target/
 ```
 
 With some options:
+
 ```
 $ ./rs --all --hoist directories --show-sizes --human-readable --resolve-symlinks --sort size
     - -   .git/
@@ -71,8 +85,9 @@ $ ./rs --all --hoist directories --show-sizes --human-readable --resolve-symlink
    19 B   rs -> ././target/release/rs*
     8 B   .gitignore
 ```
+
 *Note that the above examples contains color, so long as the terminal supports it.*
 
 ## License
 
-rs is licensed under the GNU Affero General Public License version 3, or (at your option) any later version. You should have received a copy of the GNU Affero General Public License along with rs, found in [LICENSE](./LICENSE). If not, see <[https://www.gnu.org/licenses/](https://www.gnu.org/licenses/)>.
+rs is licensed under the GNU Affero General Public License version 3, or (at your option) any later version. You should have received a copy of the GNU Affero General Public License along with rs, found in [LICENSE](./LICENSE). If not, see \<[https://www.gnu.org/licenses/](https://www.gnu.org/licenses/)>.
