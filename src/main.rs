@@ -21,6 +21,7 @@
 #![warn(clippy::cargo, clippy::nursery, clippy::pedantic, clippy::todo, missing_docs)]
 #![warn(clippy::alloc_instead_of_core, clippy::std_instead_of_alloc, clippy::std_instead_of_core)]
 #![expect(clippy::module_name_repetitions, reason = "adds clarity when using imported types")]
+#![expect(clippy::multiple_crate_versions, reason = "`owo_colors` uses multiple `supports_color` versions")]
 
 extern crate alloc;
 
