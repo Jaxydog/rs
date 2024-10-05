@@ -110,9 +110,9 @@ pub fn entries_list(
     arguments: &Arguments,
     stdout: &mut StdoutLock,
     stderr: &mut StderrLock,
-    path: impl AsRef<Path>,
+    directory: impl AsRef<Path>,
 ) -> Result<Option<Box<[Entry]>>> {
-    let Some(iterator) = self::entries_iterator(stdout, stderr, path)? else {
+    let Some(iterator) = self::entries_iterator(stdout, stderr, directory)? else {
         return Ok(None);
     };
 
@@ -150,29 +150,29 @@ pub fn entries_list(
 ///
 /// This function will return an error if the listing fails to display.
 pub fn show(arguments: &Arguments, stdout: &mut StdoutLock, iterator: impl IntoIterator<Item = Entry>) -> Result<()> {
-    let name = NameDisplay::new(arguments);
-    let permissions = arguments.show_permissions.then(|| PermissionsDisplay::new(arguments));
-    let size = arguments.show_sizes.then(|| SizeDisplay::new(arguments));
-    let modified = arguments.show_modified.then(|| ModifiedDisplay::new(arguments));
+    let name_display = NameDisplay::new(arguments);
+    let permissions_display = arguments.show_permissions.then(|| PermissionsDisplay::new(arguments));
+    let size_display = arguments.show_sizes.then(|| SizeDisplay::new(arguments));
+    let modified_display = arguments.show_modified.then(|| ModifiedDisplay::new(arguments));
 
     for ref entry in iterator {
-        if let Some(ref displayer) = permissions {
+        if let Some(ref displayer) = permissions_display {
             displayer.show(stdout, entry)?;
 
             stdout.write_all(b" ")?;
         };
-        if let Some(ref displayer) = size {
+        if let Some(ref displayer) = size_display {
             displayer.show(stdout, entry)?;
 
             stdout.write_all(b" ")?;
         };
-        if let Some(ref displayer) = modified {
+        if let Some(ref displayer) = modified_display {
             displayer.show(stdout, entry)?;
 
             stdout.write_all(b" ")?;
         };
 
-        name.show(stdout, entry)?;
+        name_display.show(stdout, entry)?;
 
         stdout.write_all(b"\n")?;
     }
@@ -195,38 +195,38 @@ pub fn main() -> Result<()> {
     let mut stdout = std::io::stdout().lock();
     let mut stderr = std::io::stderr().lock();
 
-    if arguments.paths.is_empty() {
-        let directory = std::env::current_dir()?;
-        let Some(entries) = self::entries_list(&arguments, &mut stdout, &mut stderr, directory)? else {
-            stderr.flush()?;
-
-            return Ok(());
-        };
+    if arguments.paths.len() <= 1 {
+        let directory = arguments.paths.first().map_or_else(std::env::current_dir, |v| Ok(v.to_path_buf()))?;
+        let maybe_entries = self::entries_list(&arguments, &mut stdout, &mut stderr, directory)?;
+        let Some(entries) = maybe_entries else { return stderr.flush() };
 
         self::show(&arguments, &mut stdout, entries)?;
 
         return stdout.flush();
     }
 
-    let header = HeaderDisplay::new(&arguments);
+    let header_display = HeaderDisplay::new(&arguments);
 
-    for path in &arguments.paths {
-        let Some(entries) = self::entries_list(&arguments, &mut stdout, &mut stderr, path)? else {
+    for (index, directory) in arguments.paths.iter().enumerate() {
+        let maybe_entries = self::entries_list(&arguments, &mut stdout, &mut stderr, directory)?;
+        let Some(entries) = maybe_entries else {
+            stdout.flush()?;
             stderr.flush()?;
+
             stdout.write_all(b"\n")?;
 
             continue;
         };
 
-        let entry = Entry::new(PathBuf::from(&(**path)), path.metadata()?);
-
-        header.show(&mut stdout, &entry)?;
+        header_display.show(&mut stdout, &Entry::new(directory.to_path_buf(), directory.metadata()?))?;
 
         stdout.write_all(b"\n")?;
 
         self::show(&arguments, &mut stdout, entries)?;
 
-        stdout.write_all(b"\n")?;
+        if index < arguments.paths.len() - 1 {
+            stdout.write_all(b"\n")?;
+        }
     }
 
     stdout.flush()
