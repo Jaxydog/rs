@@ -60,7 +60,20 @@ impl<'ar> OwnerDisplay<'ar> {
     /// This function will return an error if the name could not be resolved.
     #[cfg(target_family = "windows")]
     fn get_owner_name(entry: &Entry) -> Result<Box<str>> {
-        Ok("unknown".into())
+        use windows_permissions::{
+            constants::{SeObjectType, SecurityInformation},
+            wrappers::{GetSecurityInfo, LookupAccountSid},
+        };
+
+        if entry.data.is_dir() {
+            return Ok("-".into());
+        }
+
+        let file = std::fs::File::open(&entry.path)?;
+        let descriptor = GetSecurityInfo(&file, SeObjectType::SE_FILE_OBJECT, SecurityInformation::Owner)?;
+        let (name, _) = LookupAccountSid(descriptor.owner().expect("missing required data"))?;
+
+        Ok(name.to_string_lossy().into())
     }
 }
 

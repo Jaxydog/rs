@@ -25,4 +25,4 @@ nix = { version = "0.29", features = ["user"] }
 umask = "2.1"
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3", features = ["aclapi", "winbase"] }
+windows-permissions = "0.2"
