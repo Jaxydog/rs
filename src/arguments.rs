@@ -224,7 +224,7 @@ fn print_help(arguments: &Arguments, error: bool) -> Result<()> {
         option!('P', "show-permissions", "Display entry permissions."),
         option!('S', "show-sizes", "Display file sizes."),
         option!('M', "show-modified", "Display entry modification date."),
-        option!('O', "show-owner", "Display entry owner username."),
+        option!('O', "show-owner", "Display entry owner."),
         option!('L', "resolve-symlinks", "Display resolved symbolic links."),
         None,
         option!('r', "reverse", "Reverse the displayed sorting order."),

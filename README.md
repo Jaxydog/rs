@@ -28,6 +28,8 @@ Options:
 
 - `-M`, `--show-modified` - Display entry modification date.
 
+- `-O`, `--show-owner` - Display entry owner.
+
 - `-L`, `--resolve-symlinks` - Display resolved symbolic links.
 
 - `-r`, `--reverse` - Reverse the displayed sorting order.
