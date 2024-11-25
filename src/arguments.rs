@@ -48,6 +48,8 @@ pub struct Arguments {
     pub show_modified: bool,
     /// Whether to display file permissions.
     pub show_permissions: bool,
+    /// Whether to display file owners.
+    pub show_owner: bool,
     /// Whether to display resolved symbolic links.
     pub show_symlinks: bool,
 
@@ -140,6 +142,9 @@ fn parse_arguments<'arg>(mut options: Options<&'arg str, impl Iterator<Item = &'
             Opt::Long("show-modified") | Opt::Short('M') => {
                 arguments.show_modified = true;
             }
+            Opt::Long("show-owner") | Opt::Short('O') => {
+                arguments.show_owner = true;
+            }
             Opt::Long("resolve-symlinks") | Opt::Short('L') => {
                 arguments.show_symlinks = true;
             }
@@ -219,6 +224,7 @@ fn print_help(arguments: &Arguments, error: bool) -> Result<()> {
         option!('P', "show-permissions", "Display entry permissions."),
         option!('S', "show-sizes", "Display file sizes."),
         option!('M', "show-modified", "Display entry modification date."),
+        option!('O', "show-owner", "Display entry owner username."),
         option!('L', "resolve-symlinks", "Display resolved symbolic links."),
         None,
         option!('r', "reverse", "Reverse the displayed sorting order."),

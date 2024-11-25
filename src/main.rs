@@ -30,7 +30,7 @@ use std::io::{Result, StderrLock, StdoutLock, Write};
 use std::path::{Path, PathBuf};
 
 use arguments::Arguments;
-use display::{Displayer, HeaderDisplay, ModifiedDisplay, NameDisplay, PermissionsDisplay, SizeDisplay};
+use display::{Displayer, HeaderDisplay, ModifiedDisplay, NameDisplay, OwnerDisplay, PermissionsDisplay, SizeDisplay};
 use sort::{HoistType, SortType, Sorter};
 
 /// Defines the application's command-line arguments and handles parsing.
@@ -154,6 +154,7 @@ pub fn show(arguments: &Arguments, stdout: &mut StdoutLock, iterator: impl IntoI
     let permissions_display = arguments.show_permissions.then(|| PermissionsDisplay::new(arguments));
     let size_display = arguments.show_sizes.then(|| SizeDisplay::new(arguments));
     let modified_display = arguments.show_modified.then(|| ModifiedDisplay::new(arguments));
+    let owner_display = arguments.show_owner.then(|| OwnerDisplay::new(arguments));
 
     for ref entry in iterator {
         if let Some(ref displayer) = permissions_display {
@@ -171,6 +172,11 @@ pub fn show(arguments: &Arguments, stdout: &mut StdoutLock, iterator: impl IntoI
 
             stdout.write_all(b" ")?;
         };
+        if let Some(ref displayer) = owner_display {
+            displayer.show(stdout, entry)?;
+
+            stdout.write_all(b" ")?;
+        }
 
         name_display.show(stdout, entry)?;
 
