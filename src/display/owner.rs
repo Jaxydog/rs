@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// Copyright © 2024 Jaxydog
+// Copyright © 2024—2025 Jaxydog
 //
 // This file is part of rs.
 //
@@ -77,13 +77,13 @@ impl<'ar> OwnerDisplay<'ar> {
     }
 }
 
-impl<'ar> HasColor for OwnerDisplay<'ar> {
+impl HasColor for OwnerDisplay<'_> {
     fn has_color(&self) -> Option<bool> {
         self.arguments.color
     }
 }
 
-impl<'ar> Displayer for OwnerDisplay<'ar> {
+impl Displayer for OwnerDisplay<'_> {
     fn show<W: Write>(&self, f: &mut W, entry: &Entry) -> Result<()> {
         cwrite!(self, bright_green; f, "{:>8}", Self::get_owner_name(entry)?)
     }

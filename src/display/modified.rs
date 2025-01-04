@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// Copyright © 2024 Jaxydog
+// Copyright © 2024—2025 Jaxydog
 //
 // This file is part of rs.
 //
@@ -60,8 +60,7 @@ impl HasColor for ModifiedDisplay<'_> {
 
 impl Displayer for ModifiedDisplay<'_> {
     fn show<W: Write>(&self, f: &mut W, entry: &crate::Entry) -> Result<()> {
-        let time = entry.data.modified()?;
-        let mut time = OffsetDateTime::from(time);
+        let mut time = OffsetDateTime::from(entry.data.modified()?);
 
         if let Ok(offset) = UtcOffset::current_local_offset() {
             time = time.to_offset(offset);
