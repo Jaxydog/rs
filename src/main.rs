@@ -90,11 +90,12 @@ fn entries_iterator(
 
         return Ok(None);
     }
-    if path.is_symlink() {
-        return self::entries_iterator(stdout, stderr, std::fs::read_link(path)?);
-    }
 
-    std::fs::read_dir(path).map(Some)
+    if path.is_symlink() {
+        self::entries_iterator(stdout, stderr, std::fs::canonicalize(path)?)
+    } else {
+        std::fs::read_dir(path).map(Some)
+    }
 }
 
 /// Returns a list of resolved entries to list.
@@ -203,8 +204,9 @@ pub fn main() -> Result<()> {
 
     if arguments.paths.len() <= 1 {
         let directory = arguments.paths.first().map_or_else(std::env::current_dir, |v| Ok(v.to_path_buf()))?;
-        let maybe_entries = self::entries_list(&arguments, &mut stdout, &mut stderr, directory)?;
-        let Some(entries) = maybe_entries else { return stderr.flush() };
+        let Some(entries) = self::entries_list(&arguments, &mut stdout, &mut stderr, directory)? else {
+            return stderr.flush();
+        };
 
         self::show(&arguments, &mut stdout, entries)?;
 
@@ -214,8 +216,7 @@ pub fn main() -> Result<()> {
     let header_display = HeaderDisplay::new(&arguments);
 
     for (index, directory) in arguments.paths.iter().enumerate() {
-        let maybe_entries = self::entries_list(&arguments, &mut stdout, &mut stderr, directory)?;
-        let Some(entries) = maybe_entries else {
+        let Some(entries) = self::entries_list(&arguments, &mut stdout, &mut stderr, directory)? else {
             stdout.flush()?;
             stderr.flush()?;
 
